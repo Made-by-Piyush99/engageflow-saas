@@ -318,6 +318,97 @@ const server = http.createServer(async (req, res) => {
   }
 
   // ---------------------------------------------------------------------------
+  // 1.5. FACEBOOK / INSTAGRAM OAUTH CALLBACK (/api/auth/facebook/callback)
+  // ---------------------------------------------------------------------------
+  if (pathname === '/api/auth/facebook/callback' && method === 'GET') {
+    const code = parsedUrl.query.code;
+    const error = parsedUrl.query.error;
+    const errorDescription = parsedUrl.query.error_description;
+
+    if (error || !code) {
+      console.error('[OAuth] Login cancelled or error:', errorDescription || error);
+      res.writeHead(302, { Location: `/?error=${encodeURIComponent(errorDescription || error || 'Login cancelled')}` });
+      res.end();
+      return;
+    }
+
+    const db = readDatabase();
+    const clientId = '3050678375263805'; // User's Meta App ID
+    const clientSecret = db.instagram.appSecret;
+    const redirectUri = 'https://decreased-sciences-participated-drums.trycloudflare.com/api/auth/facebook/callback';
+
+    console.log('[OAuth] Received authorization code from Meta! Code:', code.slice(0, 15) + '...');
+
+    // If clientSecret is available, exchange code for User Access Token
+    if (clientSecret) {
+      try {
+        const tokenExchangeUrl = `https://graph.facebook.com/v21.0/oauth/access_token?client_id=${clientId}&client_secret=${clientSecret}&redirect_uri=${encodeURIComponent(redirectUri)}&code=${code}`;
+        const tokenRes = await httpsGet(tokenExchangeUrl);
+
+        if (tokenRes.body && tokenRes.body.access_token) {
+          const userToken = tokenRes.body.access_token;
+          console.log('[OAuth] Successfully exchanged code for User Access Token!');
+
+          // Fetch user's managed Facebook Pages and connected Instagram Business Account
+          const pagesUrl = `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,access_token,instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count}&access_token=${userToken}`;
+          const pagesRes = await httpsGet(pagesUrl);
+
+          const accounts = pagesRes.body?.data || [];
+          let connectedIg = null;
+          let pageToken = '';
+
+          for (const acc of accounts) {
+            if (acc.instagram_business_account) {
+              connectedIg = acc.instagram_business_account;
+              pageToken = acc.access_token || userToken;
+              break;
+            }
+          }
+
+          if (connectedIg) {
+            db.instagram.connected = true;
+            db.instagram.accountId = connectedIg.id;
+            db.instagram.username = `@${connectedIg.username}`;
+            db.instagram.name = connectedIg.name || connectedIg.username;
+            db.instagram.profilePic = connectedIg.profile_picture_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
+            db.instagram.followersCount = connectedIg.followers_count || 0;
+            db.instagram.mediaCount = connectedIg.media_count || 0;
+            db.instagram.accessToken = pageToken;
+            db.instagram.appId = clientId;
+            writeDatabase(db);
+
+            console.log(`[OAuth] Successfully connected Instagram account: @${connectedIg.username}`);
+            res.writeHead(302, { Location: `/?oauth_success=true&username=${encodeURIComponent(connectedIg.username)}` });
+            res.end();
+            return;
+          } else {
+            res.writeHead(302, { Location: `/?error=${encodeURIComponent('No Instagram Professional/Business account found linked to your Facebook Page. Please ensure your Instagram is connected to your Facebook Page.')}` });
+            res.end();
+            return;
+          }
+        } else {
+          const errMsg = tokenRes.body?.error?.message || 'Failed to exchange authorization code';
+          console.error('[OAuth] Token exchange error:', errMsg);
+          res.writeHead(302, { Location: `/?error=${encodeURIComponent(errMsg)}` });
+          res.end();
+          return;
+        }
+      } catch (err) {
+        console.error('[OAuth] Processing exception:', err);
+        res.writeHead(302, { Location: `/?error=${encodeURIComponent(err.message)}` });
+        res.end();
+        return;
+      }
+    } else {
+      // clientSecret is needed for server-to-server token exchange
+      console.log('[OAuth] App Secret is required to complete token exchange. Redirecting with code.');
+      res.writeHead(302, { Location: `/?auth_code=${encodeURIComponent(code)}&need_secret=true` });
+      res.end();
+      return;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // 2. REAL INSTAGRAM CONNECTION VALIDATOR (Meta Graph API)
   // ---------------------------------------------------------------------------
   if (pathname === '/api/instagram/connect' && method === 'POST') {

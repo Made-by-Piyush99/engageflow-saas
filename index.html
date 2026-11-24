@@ -214,14 +214,14 @@
           <p class="text-xs text-slate-400">Connect your Instagram Business or Creator account using your Meta API keys to start sending live automatic DMs.</p>
         </div>
       </div>
-      <div class="flex items-center gap-3">
-        <button onclick="switchTab('setup')" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 text-xs font-semibold flex items-center gap-1.5 transition">
-          <i data-lucide="book-open" class="w-4 h-4 text-cyan-400"></i>
-          <span>View Setup Guide</span>
-        </button>
-        <button onclick="openConnectModal()" class="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold shadow-lg shadow-violet-600/30 flex items-center gap-1.5 transition">
-          <i data-lucide="link-2" class="w-4 h-4"></i>
-          <span>Connect Now</span>
+      <div class="flex flex-wrap items-center gap-3">
+        <a href="https://www.facebook.com/dialog/oauth?client_id=3050678375263805&config_id=3733380756838613&display=popup&override_default_response_type=true&redirect_uri=https%3A%2F%2Fdecreased-sciences-participated-drums.trycloudflare.com%2Fapi%2Fauth%2Ffacebook%2Fcallback&response_type=code" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white text-xs font-bold shadow-lg shadow-blue-600/30 flex items-center gap-2 transition transform active:scale-95">
+          <i data-lucide="facebook" class="w-4 h-4 text-white"></i>
+          <span>1-Click Connect with Instagram</span>
+        </a>
+        <button onclick="openConnectModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 text-xs font-semibold flex items-center gap-1.5 transition">
+          <i data-lucide="key" class="w-4 h-4 text-cyan-400"></i>
+          <span>Manual Keys Entry</span>
         </button>
       </div>
     </div>
@@ -538,9 +538,23 @@
         <button onclick="closeConnectModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
 
-      <p class="text-xs text-slate-400">
-        Enter your official Meta API credentials below. Our server will perform a live verification against Meta Graph API to connect your real profile.
-      </p>
+      <div class="p-4 rounded-xl bg-gradient-to-r from-blue-600/20 via-indigo-600/20 to-violet-600/20 border border-blue-500/30 text-center space-y-2">
+        <div class="text-xs font-bold text-white flex items-center justify-center gap-1.5">
+          <i data-lucide="zap" class="w-4 h-4 text-cyan-400"></i>
+          <span>Recommended Method (Zero Manual Setup)</span>
+        </div>
+        <p class="text-[11px] text-slate-300">Connect in 1 click using your official Meta Facebook login:</p>
+        <a href="https://www.facebook.com/dialog/oauth?client_id=3050678375263805&config_id=3733380756838613&display=popup&override_default_response_type=true&redirect_uri=https%3A%2F%2Fdecreased-sciences-participated-drums.trycloudflare.com%2Fapi%2Fauth%2Ffacebook%2Fcallback&response_type=code" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-lg shadow-blue-600/30 transition transform active:scale-95">
+          <i data-lucide="facebook" class="w-4 h-4"></i>
+          <span>1-Click Connect with Instagram</span>
+        </a>
+      </div>
+
+      <div class="flex items-center gap-2 my-2">
+        <div class="flex-1 border-t border-white/10"></div>
+        <span class="text-[10px] text-slate-500 uppercase font-semibold">Or Connect Manually with Keys</span>
+        <div class="flex-1 border-t border-white/10"></div>
+      </div>
 
       <div class="space-y-3.5 text-xs">
         <div>
@@ -702,6 +716,16 @@
     }
 
     async function checkAuth() {
+      // Check OAuth return params
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('oauth_success')) {
+        showToast(`🎉 Connected to ${urlParams.get('username') || 'Instagram'}!`);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (urlParams.get('error')) {
+        alert('Meta Login: ' + decodeURIComponent(urlParams.get('error')));
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
       const token = localStorage.getItem('EngageFlow_token');
       if (!token) {
         document.getElementById('authModal').classList.remove('hidden');

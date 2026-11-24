@@ -16,6 +16,26 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Native .env loader
+try {
+  const envPath = path.join(__dirname, '.env');
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf-8');
+    envContent.split(/\r?\n/).forEach(line => {
+      line = line.trim();
+      if (line && !line.startsWith('#') && line.includes('=')) {
+        const idx = line.indexOf('=');
+        const key = line.slice(0, idx).trim();
+        const val = line.slice(idx + 1).trim();
+        process.env[key] = val;
+      }
+    });
+    console.log('[ENV] Secure environment loaded from .env');
+  }
+} catch (e) {
+  console.error('[ENV] Failed to load .env file:', e.message);
+}
+
 const PORT = process.env.PORT || 5050;
 const DB_FILE = path.join(__dirname, 'data', 'database.json');
 
@@ -333,8 +353,8 @@ const server = http.createServer(async (req, res) => {
     }
 
     const db = readDatabase();
-    const clientId = '3050678375263805'; // User's Meta App ID
-    const clientSecret = db.instagram.appSecret;
+    const clientId = process.env.META_APP_ID || db.instagram.appId || '3050678375263805';
+    const clientSecret = process.env.META_APP_SECRET || db.instagram.appSecret;
     const redirectUri = 'https://decreased-sciences-participated-drums.trycloudflare.com/api/auth/facebook/callback';
 
     console.log('[OAuth] Received authorization code from Meta! Code:', code.slice(0, 15) + '...');
@@ -805,8 +825,7 @@ const server = http.createServer(async (req, res) => {
         followersCount: db.instagram.followersCount,
         mediaCount: db.instagram.mediaCount,
         appId: db.instagram.appId,
-        hasAccessToken: Boolean(db.instagram.accessToken),
-        webhookVerifyToken: db.instagram.webhookVerifyToken
+        hasAccessToken: Boolean(db.instagram.accessToken)
       }
     });
     return;

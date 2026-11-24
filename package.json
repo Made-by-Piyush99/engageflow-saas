@@ -1,0 +1,21 @@
+{
+  "name": "engageflow",
+  "version": "1.0.0",
+  "description": "EngageFlow — Turn Instagram Comments into Customers on Autopilot. Enterprise Public SaaS for Instagram DM & Lead Automation.",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "engageflow",
+    "instagram-automation",
+    "saas",
+    "auto-dm",
+    "lead-generation",
+    "meta-graph-api"
+  ],
+  "author": "Piyush Sadar (DevStudio)",
+  "license": "MIT"
+}

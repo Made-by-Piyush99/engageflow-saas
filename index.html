@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EngageFlow — Free Public Instagram DM Automation</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              500: '#8b5cf6',
+              600: '#7c3aed',
+              700: '#6d28d9'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      background-color: #070A11;
+      color: #F8FAFC;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow-x: hidden;
+    }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.5);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #070A11; }
+    ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 9999px; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+  <!-- Ambient Glow -->
+  <div class="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] bg-violet-600/15 rounded-full blur-[140px] pointer-events-none -z-10"></div>
+  <div class="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[140px] pointer-events-none -z-10"></div>
+
+  <!-- ======================================================================= -->
+  <!-- PUBLIC AUTH MODAL (Login & Register) -->
+  <!-- ======================================================================= -->
+  <div id="authModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-md rounded-2xl border border-white/10 shadow-2xl p-6 sm:p-8 space-y-6">
+      
+      <!-- Brand Header -->
+      <div class="text-center space-y-2">
+        <div class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-violet-600/30">
+          <i data-lucide="zap" class="w-6 h-6 text-white"></i>
+        </div>
+        <h2 class="text-xl font-extrabold text-white">EngageFlow</h2>
+        <p class="text-xs text-slate-400">100% Free Public Instagram DM & Lead Automation</p>
+      </div>
+
+      <!-- Auth Tabs -->
+      <div class="flex rounded-xl bg-slate-900/80 p-1 border border-white/5 text-xs font-semibold">
+        <button onclick="setAuthTab('login')" id="authTab-login" class="flex-1 py-2 text-center rounded-lg bg-violet-600 text-white transition">Sign In</button>
+        <button onclick="setAuthTab('register')" id="authTab-register" class="flex-1 py-2 text-center rounded-lg text-slate-400 hover:text-white transition">Create Free Account</button>
+      </div>
+
+      <!-- Sign In Form -->
+      <div id="authForm-login" class="space-y-4 text-xs">
+        <div>
+          <label class="font-semibold text-slate-300">Email Address</label>
+          <input type="email" id="loginEmail" placeholder="your@email.com" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-violet-500 mt-1">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300">Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-violet-500 mt-1">
+        </div>
+        <button onclick="handleLogin()" class="w-full py-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs shadow-lg shadow-violet-600/30 transition">
+          Sign In to Dashboard
+        </button>
+      </div>
+
+      <!-- Register Form -->
+      <div id="authForm-register" class="hidden space-y-4 text-xs">
+        <div>
+          <label class="font-semibold text-slate-300">Your Full Name</label>
+          <input type="text" id="regName" placeholder="e.g. Alex Morgan" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-violet-500 mt-1">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300">Email Address</label>
+          <input type="email" id="regEmail" placeholder="your@email.com" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-violet-500 mt-1">
+        </div>
+        <div>
+          <label class="font-semibold text-slate-300">Create Password (Min 6 chars)</label>
+          <input type="password" id="regPassword" placeholder="••••••••" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-violet-500 mt-1">
+        </div>
+        <button onclick="handleRegister()" class="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-500 text-white font-bold text-xs shadow-lg shadow-violet-600/30 transition">
+          Create Account & Start Free
+        </button>
+      </div>
+
+      <div class="text-center text-[11px] text-slate-500">
+        100% Free Forever • Connect your official Meta Instagram API
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Global Header -->
+  <header class="glass-panel sticky top-0 z-40 border-b border-white/10 px-4 lg:px-8 py-3.5">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      
+      <!-- Brand -->
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-violet-600/30">
+          <i data-lucide="zap" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-base tracking-tight text-white">EngageFlow<span class="text-violet-400">Pro</span></span>
+            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 uppercase tracking-wider">Free Public Edition</span>
+          </div>
+          <p class="text-[11px] text-slate-400">Instagram Auto-DM & Lead Generation</p>
+        </div>
+      </div>
+
+      <!-- Right Header Actions -->
+      <div class="flex items-center gap-3">
+        <!-- Connected Account Badge / Connect Button -->
+        <div id="headerAccountBadge">
+          <button onclick="openConnectModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-violet-600/20 hover:bg-violet-600/30 border border-violet-500/40 text-violet-300 text-xs font-semibold transition">
+            <i data-lucide="link-2" class="w-3.5 h-3.5"></i>
+            <span>Connect Instagram</span>
+          </button>
+        </div>
+
+        <!-- User Profile & Logout -->
+        <div id="userProfileBadge" class="hidden flex items-center gap-2 pl-3 border-l border-white/10">
+          <div class="text-right hidden sm:block">
+            <div class="text-xs font-bold text-white" id="navUserName">Creator</div>
+            <div class="text-[10px] text-slate-400 font-mono" id="navUserEmail">user@example.com</div>
+          </div>
+          <button onclick="handleLogout()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition" title="Log Out">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Navigation Bar (Tabs) -->
+  <nav class="border-b border-white/5 bg-[#090D16]/90 backdrop-blur px-4 lg:px-8">
+    <div class="max-w-7xl mx-auto flex items-center gap-1 overflow-x-auto py-2">
+      <button onclick="switchTab('dashboard')" id="tabBtn-dashboard" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold text-white bg-violet-600/20 text-violet-300 border border-violet-500/30 transition">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+        <span>Dashboard</span>
+      </button>
+
+      <button onclick="switchTab('studio')" id="tabBtn-studio" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/5 transition">
+        <i data-lucide="sliders" class="w-4 h-4"></i>
+        <span>Automation Rules</span>
+        <span class="px-1.5 py-0.5 rounded-full bg-slate-800 text-[10px] text-slate-400 font-mono" id="ruleCountBadge">0</span>
+      </button>
+
+      <button onclick="switchTab('setup')" id="tabBtn-setup" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/5 transition">
+        <i data-lucide="key" class="w-4 h-4 text-cyan-400"></i>
+        <span>How to Get Meta API Keys</span>
+      </button>
+
+      <button onclick="switchTab('simulator')" id="tabBtn-simulator" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/5 transition">
+        <i data-lucide="smartphone" class="w-4 h-4 text-violet-400"></i>
+        <span>Interactive Phone Simulator</span>
+      </button>
+
+      <button onclick="switchTab('leads')" id="tabBtn-leads" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/5 transition">
+        <i data-lucide="users" class="w-4 h-4"></i>
+        <span>Captured Leads</span>
+        <span class="px-1.5 py-0.5 rounded-full bg-slate-800 text-[10px] text-slate-400 font-mono" id="leadsCountBadge">0</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8 space-y-8">
+
+    <!-- ======================================================================= -->
+    <!-- UNCONNECTED INSTAGRAM ALERT BANNER (If not connected) -->
+    <!-- ======================================================================= -->
+    <div id="unconnectedBanner" class="glass-panel rounded-2xl p-6 border border-violet-500/30 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500/20 to-violet-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 flex-shrink-0">
+          <i data-lucide="alert-circle" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-white">Instagram Account Not Connected Yet</h3>
+          <p class="text-xs text-slate-400">Connect your Instagram Business or Creator account using your Meta API keys to start sending live automatic DMs.</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="switchTab('setup')" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 text-xs font-semibold flex items-center gap-1.5 transition">
+          <i data-lucide="book-open" class="w-4 h-4 text-cyan-400"></i>
+          <span>View Setup Guide</span>
+        </button>
+        <button onclick="openConnectModal()" class="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold shadow-lg shadow-violet-600/30 flex items-center gap-1.5 transition">
+          <i data-lucide="link-2" class="w-4 h-4"></i>
+          <span>Connect Now</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 1: EXECUTIVE DASHBOARD (Real Data Only) -->
+    <!-- ======================================================================= -->
+    <section id="view-dashboard" class="space-y-8">
+      
+      <!-- Real KPI Stat Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        
+        <div class="glass-card rounded-2xl p-5 border border-white/5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-semibold text-slate-400">Total Live DMs Sent</span>
+            <div class="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-400">
+              <i data-lucide="send" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="text-3xl font-extrabold text-white font-mono" id="statRealDms">0</div>
+          <p class="text-[11px] text-slate-500 mt-2">Real comments automated</p>
+        </div>
+
+        <div class="glass-card rounded-2xl p-5 border border-white/5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-semibold text-slate-400">Active Automation Flows</span>
+            <div class="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400">
+              <i data-lucide="sliders" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="text-3xl font-extrabold text-white font-mono" id="statRealRules">0</div>
+          <p class="text-[11px] text-slate-500 mt-2">Listening for keywords</p>
+        </div>
+
+        <div class="glass-card rounded-2xl p-5 border border-white/5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-semibold text-slate-400">Total Leads Captured</span>
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+              <i data-lucide="user-check" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="text-3xl font-extrabold text-white font-mono" id="statRealLeads">0</div>
+          <p class="text-[11px] text-slate-500 mt-2">Users who engaged</p>
+        </div>
+
+        <div class="glass-card rounded-2xl p-5 border border-white/5">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-semibold text-slate-400">Instagram Status</span>
+            <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400">
+              <i data-lucide="instagram" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="text-base font-bold text-white flex items-center gap-2 mt-1" id="statIgStatus">
+            <span class="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
+            <span>Not Connected</span>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-2" id="statIgFollowers">Meta Graph API</p>
+        </div>
+
+      </div>
+
+      <!-- Active Rules Section -->
+      <div class="glass-panel rounded-2xl p-6 border border-white/5 space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              <i data-lucide="sparkles" class="w-4 h-4 text-violet-400"></i>
+              <span>Your Automation Rules</span>
+            </h2>
+            <p class="text-xs text-slate-400">Keywords and direct message actions currently configured</p>
+          </div>
+          <button onclick="openNewRuleModal()" class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold flex items-center gap-1.5 transition">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Create Rule</span>
+          </button>
+        </div>
+
+        <!-- Rules List Container -->
+        <div id="dashboardRulesList" class="space-y-3">
+          <!-- Empty State (Default) -->
+          <div class="text-center py-12 border border-dashed border-white/10 rounded-2xl space-y-3">
+            <div class="w-12 h-12 mx-auto rounded-2xl bg-slate-800 flex items-center justify-center text-slate-500">
+              <i data-lucide="inbox" class="w-6 h-6"></i>
+            </div>
+            <div class="font-bold text-sm text-slate-300">No Automation Rules Created Yet</div>
+            <p class="text-xs text-slate-500 max-w-sm mx-auto">Create a keyword rule like "LINK" or "ROADMAP" so when followers comment on your Reels, an automated DM is sent instantly.</p>
+            <button onclick="openNewRuleModal()" class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition">
+              + Create First Automation Rule
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 2: STEP-BY-STEP SETUP GUIDE (How to get Meta API Keys) -->
+    <!-- ======================================================================= -->
+    <section id="view-setup" class="hidden space-y-6">
+      
+      <div class="max-w-3xl">
+        <h1 class="text-2xl font-extrabold text-white flex items-center gap-2.5">
+          <i data-lucide="book-open" class="w-6 h-6 text-cyan-400"></i>
+          <span>How to Get Your Meta & Instagram API Keys</span>
+        </h1>
+        <p class="text-xs text-slate-400 mt-1">Follow these official Meta Developers steps to connect your Instagram account. It takes about 3 minutes.</p>
+      </div>
+
+      <!-- Step Cards -->
+      <div class="space-y-4 max-w-4xl">
+        
+        <!-- Step 1 -->
+        <div class="glass-panel rounded-2xl p-6 border border-white/5 space-y-3">
+          <div class="flex items-center gap-3">
+            <span class="w-7 h-7 rounded-full bg-violet-600 text-white font-bold text-xs flex items-center justify-center">1</span>
+            <h3 class="text-sm font-bold text-white">Create a Meta Developer Account & App</h3>
+          </div>
+          <div class="pl-10 space-y-2 text-xs text-slate-300">
+            <p>1. Open <a href="https://developers.facebook.com" target="_blank" class="text-cyan-400 hover:underline font-mono">developers.facebook.com</a> and sign in with your Facebook account.</p>
+            <p>2. Click on <strong>"My Apps"</strong> in the top navigation bar, then click <strong>"Create App"</strong>.</p>
+            <p>3. Choose <strong>"Other"</strong> as your use case, and select <strong>"Business"</strong> as your app type.</p>
+            <p>4. Give your app a name (e.g. <em>"My Instagram Auto DM"</em>) and click <strong>Create App</strong>.</p>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="glass-panel rounded-2xl p-6 border border-white/5 space-y-3">
+          <div class="flex items-center gap-3">
+            <span class="w-7 h-7 rounded-full bg-violet-600 text-white font-bold text-xs flex items-center justify-center">2</span>
+            <h3 class="text-sm font-bold text-white">Add Instagram Graph API to Your App</h3>
+          </div>
+          <div class="pl-10 space-y-2 text-xs text-slate-300">
+            <p>1. On your app dashboard, scroll down to <strong>"Add products to your app"</strong>.</p>
+            <p>2. Locate <strong>"Instagram Graph API"</strong> and click <strong>"Set Up"</strong>.</p>
+            <p>3. Ensure your Instagram account is an <strong>Instagram Professional (Creator or Business) Account</strong> connected to a Facebook Page.</p>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="glass-panel rounded-2xl p-6 border border-white/5 space-y-3">
+          <div class="flex items-center gap-3">
+            <span class="w-7 h-7 rounded-full bg-violet-600 text-white font-bold text-xs flex items-center justify-center">3</span>
+            <h3 class="text-sm font-bold text-white">Generate Page Access Token & Account ID</h3>
+          </div>
+          <div class="pl-10 space-y-2 text-xs text-slate-300">
+            <p>1. In the top menu, go to <strong>Tools → Graph API Explorer</strong>.</p>
+            <p>2. Select your App from the top-left dropdown.</p>
+            <p>3. Under <strong>Permissions</strong>, add these essential scopes:</p>
+            <div class="flex flex-wrap gap-2 my-2 font-mono text-[11px]">
+              <span class="px-2 py-0.5 rounded bg-slate-800 text-cyan-400 border border-white/10">instagram_basic</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 text-cyan-400 border border-white/10">instagram_manage_comments</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 text-cyan-400 border border-white/10">instagram_manage_messages</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 text-cyan-400 border border-white/10">pages_show_list</span>
+              <span class="px-2 py-0.5 rounded bg-slate-800 text-cyan-400 border border-white/10">pages_read_engagement</span>
+            </div>
+            <p>4. Click <strong>"Generate Access Token"</strong> and approve the Facebook login dialog.</p>
+            <p>5. In the query box, run: <code class="font-mono text-cyan-400 bg-slate-900 px-2 py-0.5 rounded">GET /v21.0/me/accounts?fields=instagram_business_account{id,username}</code> to get your <strong>Instagram Business Account ID</strong>.</p>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="glass-panel rounded-2xl p-6 border border-white/5 space-y-3">
+          <div class="flex items-center gap-3">
+            <span class="w-7 h-7 rounded-full bg-cyan-600 text-white font-bold text-xs flex items-center justify-center">4</span>
+            <h3 class="text-sm font-bold text-white">Configure Webhook in Meta</h3>
+          </div>
+          <div class="pl-10 space-y-2 text-xs text-slate-300">
+            <p>Under your App settings → <strong>Webhooks → Instagram</strong>, enter:</p>
+            <div class="p-3 bg-black/40 rounded-xl border border-white/10 font-mono text-xs space-y-1">
+              <div><strong>Callback URL:</strong> <span class="text-cyan-400" id="displayWebhookUrl">https://YOUR_DOMAIN/api/webhooks/instagram</span></div>
+              <div><strong>Verify Token:</strong> <span class="text-violet-400">EngageFlow_public_webhook_2026</span></div>
+            </div>
+            <p>Subscribe to fields: <code class="font-mono text-emerald-400">comments</code> and <code class="font-mono text-emerald-400">messages</code>.</p>
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <div class="pt-4 flex items-center gap-4">
+          <button onclick="openConnectModal()" class="px-6 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold shadow-lg shadow-violet-600/30 flex items-center gap-2 transition">
+            <i data-lucide="link-2" class="w-4 h-4"></i>
+            <span>I Have My Keys — Connect Instagram Now</span>
+          </button>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 3: AUTOMATION RULES (Studio) -->
+    <!-- ======================================================================= -->
+    <section id="view-studio" class="hidden space-y-6">
+      
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-extrabold text-white">Automation Studio</h1>
+          <p class="text-xs text-slate-400">Manage all keyword triggers, automatic public replies, and direct messages.</p>
+        </div>
+        <button onclick="openNewRuleModal()" class="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold flex items-center gap-1.5 transition">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>Create New Rule</span>
+        </button>
+      </div>
+
+      <div id="studioRulesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Rendered dynamically -->
+      </div>
+
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 4: INTERACTIVE PHONE SIMULATOR -->
+    <!-- ======================================================================= -->
+    <section id="view-simulator" class="hidden space-y-6">
+      <div class="text-center max-w-xl mx-auto space-y-1">
+        <h2 class="text-2xl font-extrabold text-white">Live Phone Simulator</h2>
+        <p class="text-xs text-slate-400">Test your configured rules safely in this interactive iPhone mockup before posting live on Instagram.</p>
+      </div>
+
+      <div class="flex justify-center items-center py-4">
+        <!-- iPhone Mockup -->
+        <div class="w-[360px] h-[680px] bg-black rounded-[46px] p-3 shadow-2xl shadow-violet-950/40 border-[5px] border-slate-700 flex flex-col relative overflow-hidden">
+          
+          <!-- Dynamic Island -->
+          <div class="absolute top-4 left-1/2 -translate-x-1/2 w-28 h-6 bg-black rounded-full z-40 border border-white/5"></div>
+
+          <div class="w-full h-full bg-[#05080E] rounded-[38px] flex flex-col overflow-hidden relative border border-white/5">
+            <!-- Status Bar -->
+            <div class="pt-2 px-6 pb-2 flex justify-between items-center text-[10px] text-white font-medium z-30">
+              <span>9:41</span>
+              <div class="flex items-center gap-1">
+                <i data-lucide="wifi" class="w-3 h-3"></i>
+                <i data-lucide="battery" class="w-3 h-3"></i>
+              </div>
+            </div>
+
+            <!-- Header -->
+            <div class="px-3 py-2 bg-slate-900 border-b border-white/10 flex items-center justify-between text-xs text-white">
+              <div class="flex items-center gap-2">
+                <span class="font-bold" id="simHeaderUsername">@my_creator_account</span>
+                <i data-lucide="badge-check" class="w-3.5 h-3.5 text-cyan-400"></i>
+              </div>
+              <span class="text-[9px] text-emerald-400">Live Simulator</span>
+            </div>
+
+            <!-- Comments List -->
+            <div class="flex-1 p-3 overflow-y-auto space-y-3 bg-[#0B0F19]" id="simCommentsList">
+              <div class="text-[10px] text-slate-500 text-center font-mono">Comments on Recent Reel</div>
+            </div>
+
+            <!-- Comment Input -->
+            <div class="p-2.5 bg-slate-900 border-t border-white/10 flex items-center gap-2">
+              <input type="text" id="simInput" placeholder="Type a comment to test..." class="flex-1 bg-black/60 border border-white/10 rounded-full px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500">
+              <button onclick="postSimulatorComment()" class="w-8 h-8 rounded-full bg-violet-600 hover:bg-violet-500 text-white flex items-center justify-center flex-shrink-0 transition">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+
+            <!-- Direct Message Overlay Banner -->
+            <div id="simDmBanner" class="hidden absolute bottom-14 left-3 right-3 bg-slate-900/95 backdrop-blur-md border border-violet-500/50 rounded-2xl p-3 shadow-2xl z-50 animate-fadeIn text-xs space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-white flex items-center gap-1.5"><i data-lucide="message-circle" class="w-3.5 h-3.5 text-cyan-400"></i> Direct Message Delivered</span>
+                <button onclick="document.getElementById('simDmBanner').classList.add('hidden')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-3 h-3"></i></button>
+              </div>
+              <p class="text-slate-200 text-[11px] whitespace-pre-line" id="simDmText"></p>
+              <div id="simDmButtons" class="pt-1 space-y-1"></div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 5: LEADS CRM (Real Data Only) -->
+    <!-- ======================================================================= -->
+    <section id="view-leads" class="hidden space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-extrabold text-white">Captured Leads</h1>
+          <p class="text-xs text-slate-400">Users who commented on your posts and received automated DMs.</p>
+        </div>
+        <button onclick="exportLeadsCsv()" class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold flex items-center gap-1.5 transition">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>Export CSV</span>
+        </button>
+      </div>
+
+      <div class="glass-panel rounded-2xl border border-white/5 overflow-hidden">
+        <div id="leadsTableContainer">
+          <div class="text-center py-16 space-y-2">
+            <i data-lucide="users" class="w-8 h-8 text-slate-500 mx-auto"></i>
+            <div class="font-bold text-sm text-slate-300">No Leads Captured Yet</div>
+            <p class="text-xs text-slate-500 max-w-sm mx-auto">Once your Instagram account is connected and followers start commenting with trigger keywords, captured leads will appear here.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================================================================= -->
+  <!-- MODAL: CONNECT INSTAGRAM ACCOUNT (Real Meta Validator) -->
+  <!-- ======================================================================= -->
+  <div id="connectModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-lg rounded-2xl border border-white/10 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-white/10">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="instagram" class="w-5 h-5 text-violet-400"></i>
+          <span>Connect Your Instagram Account</span>
+        </h3>
+        <button onclick="closeConnectModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+
+      <p class="text-xs text-slate-400">
+        Enter your official Meta API credentials below. Our server will perform a live verification against Meta Graph API to connect your real profile.
+      </p>
+
+      <div class="space-y-3.5 text-xs">
+        <div>
+          <label class="font-semibold text-slate-300">Instagram Business Account ID *</label>
+          <input type="text" id="connAccountId" placeholder="e.g. 17841456419673706" class="w-full bg-slate-900 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-violet-500 mt-1 font-mono">
+          <p class="text-[10px] text-slate-500 mt-0.5">Found in Graph API Explorer via GET /me/accounts.</p>
+        </div>
+
+        <div>
+          <label class="font-semibold text-slate-300">Page Access Token (Never-Expiring) *</label>
+          <input type="password" id="connAccessToken" placeholder="EAAT..." class="w-full bg-slate-900 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-violet-500 mt-1 font-mono">
+          <p class="text-[10px] text-slate-500 mt-0.5">Requires instagram_manage_comments and instagram_manage_messages permissions.</p>
+        </div>
+
+        <div>
+          <label class="font-semibold text-slate-300">Meta App ID (Optional)</label>
+          <input type="text" id="connAppId" placeholder="e.g. 1444300546930190" class="w-full bg-slate-900 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-violet-500 mt-1 font-mono">
+        </div>
+
+        <div>
+          <label class="font-semibold text-slate-300">Meta App Secret (Optional)</label>
+          <input type="password" id="connAppSecret" placeholder="••••••••••••••••••••••••" class="w-full bg-slate-900 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-violet-500 mt-1 font-mono">
+        </div>
+      </div>
+
+      <div id="connectErrorBox" class="hidden p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-medium"></div>
+
+      <div class="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
+        <button onclick="closeConnectModal()" class="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white">Cancel</button>
+        <button onclick="submitInstagramConnect()" id="btnSubmitConnect" class="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold shadow-lg shadow-violet-600/30 flex items-center gap-2 transition">
+          <i data-lucide="check" class="w-4 h-4"></i>
+          <span>Verify & Connect Real Account</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- MODAL: CREATE NEW AUTOMATION RULE -->
+  <!-- ======================================================================= -->
+  <div id="ruleModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-lg rounded-2xl border border-white/10 shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-white/10">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="plus-circle" class="w-4 h-4 text-violet-400"></i>
+          <span>Create Automation Rule</span>
+        </h3>
+        <button onclick="closeRuleModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <div>
+          <label class="font-semibold text-slate-300">Rule Name</label>
+          <input type="text" id="modalRuleName" placeholder="e.g. Free PDF Roadmap Giveaway" class="w-full bg-slate-900 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-violet-500 mt-1">
+        </div>
+
+        <div>
+          <label class="font-semibold text-slate-300">Trigger Keywords (Comma separated)</label>
+          <input type="text" id="modalRuleTriggers" placeholder="e.g. ROADMAP, GUIDE, LINK, FREE" class="w-full bg-slate-900 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-violet-500 mt-1 font-mono">
+          <p class="text-[10px] text-slate-500 mt-0.5">When someone comments any of these words on your Reel, this automated flow triggers.</p>
+        </div>
+
+        <div>
+          <label class="font-semibold text-slate-300">Public Comment Auto-Reply</label>
+          <input type="text" id="modalRulePublicReply" placeholder="e.g. Sent the link to your DMs! 🚀 Check your inbox!" class="w-full bg-slate-900 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-violet-500 mt-1">
+        </div>
+
+        <div>
+          <label class="font-semibold text-slate-300">Direct Message Content (Supports {{name}})</label>
+          <textarea id="modalRuleDmText" rows="3" placeholder="Hey {{name}}! Here is the link you requested:" class="w-full bg-slate-900 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-violet-500 mt-1"></textarea>
+        </div>
+
+        <div class="p-3 bg-slate-900/60 rounded-xl border border-white/5 space-y-2">
+          <label class="font-semibold text-slate-300">Direct Message Action Button (CTA)</label>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" id="modalBtnLabel" placeholder="Button Title (e.g. Download PDF 📥)" class="bg-black/40 border border-white/10 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-violet-500">
+            <input type="text" id="modalBtnUrl" placeholder="Target Link (https://...)" class="bg-black/40 border border-white/10 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-violet-500 font-mono">
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
+        <button onclick="closeRuleModal()" class="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white">Cancel</button>
+        <button onclick="submitSaveRule()" class="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition">
+          Save Automation Rule
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="hidden fixed bottom-6 right-6 z-50 glass-panel border border-violet-500/40 px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 text-xs text-white">
+    <div class="w-6 h-6 rounded-full bg-violet-600 flex items-center justify-center text-white flex-shrink-0">
+      <i data-lucide="check" class="w-3.5 h-3.5"></i>
+    </div>
+    <span id="toastMsg">Operation successful!</span>
+  </div>
+
+  <!-- Client Script -->
+  <script>
+    let state = {
+      currentUser: null,
+      instagram: { connected: false },
+      rules: [],
+      leads: [],
+      metrics: { totalDMsSent: 0 }
+    };
+
+    function refreshIcons() {
+      setTimeout(() => {
+        if (window.lucide) window.lucide.createIcons();
+      }, 50);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').innerText = msg;
+      toast.classList.remove('hidden');
+      refreshIcons();
+      setTimeout(() => toast.classList.add('hidden'), 3500);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+      const target = document.getElementById(`view-${tabId}`);
+      if (target) target.classList.remove('hidden');
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-violet-600/20', 'text-violet-300', 'border', 'border-violet-500/30');
+        btn.classList.add('text-slate-400');
+      });
+      const activeBtn = document.getElementById(`tabBtn-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-violet-600/20', 'text-violet-300', 'border', 'border-violet-500/30');
+        activeBtn.classList.remove('text-slate-400');
+      }
+      refreshIcons();
+    }
+
+    // AUTH HANDLING
+    function setAuthTab(tab) {
+      const loginTab = document.getElementById('authTab-login');
+      const regTab = document.getElementById('authTab-register');
+      const loginForm = document.getElementById('authForm-login');
+      const regForm = document.getElementById('authForm-register');
+
+      if (tab === 'login') {
+        loginTab.className = "flex-1 py-2 text-center rounded-lg bg-violet-600 text-white transition";
+        regTab.className = "flex-1 py-2 text-center rounded-lg text-slate-400 hover:text-white transition";
+        loginForm.classList.remove('hidden');
+        regForm.classList.add('hidden');
+      } else {
+        regTab.className = "flex-1 py-2 text-center rounded-lg bg-violet-600 text-white transition";
+        loginTab.className = "flex-1 py-2 text-center rounded-lg text-slate-400 hover:text-white transition";
+        regForm.classList.remove('hidden');
+        loginForm.classList.add('hidden');
+      }
+    }
+
+    async function checkAuth() {
+      const token = localStorage.getItem('EngageFlow_token');
+      if (!token) {
+        document.getElementById('authModal').classList.remove('hidden');
+        refreshIcons();
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/auth/me', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          state.currentUser = data.user;
+          document.getElementById('authModal').classList.add('hidden');
+          updateUserUI();
+          loadRealData();
+        } else {
+          localStorage.removeItem('EngageFlow_token');
+          document.getElementById('authModal').classList.remove('hidden');
+        }
+      } catch (e) {
+        document.getElementById('authModal').classList.remove('hidden');
+      }
+      refreshIcons();
+    }
+
+    async function handleLogin() {
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+      if (!email || !password) return alert('Please enter both email and password');
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+          localStorage.setItem('EngageFlow_token', data.token);
+          state.currentUser = data.user;
+          document.getElementById('authModal').classList.add('hidden');
+          updateUserUI();
+          loadRealData();
+          showToast(`Welcome back, ${data.user.name}!`);
+        } else {
+          alert(data.error || 'Login failed');
+        }
+      } catch (err) {
+        alert('Could not connect to server');
+      }
+    }
+
+    async function handleRegister() {
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value.trim();
+      if (!name || !email || !password) return alert('Please fill in all fields');
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+          localStorage.setItem('EngageFlow_token', data.token);
+          state.currentUser = data.user;
+          document.getElementById('authModal').classList.add('hidden');
+          updateUserUI();
+          loadRealData();
+          showToast(`Account created! Welcome, ${data.user.name}`);
+        } else {
+          alert(data.error || 'Registration failed');
+        }
+      } catch (err) {
+        alert('Could not connect to server');
+      }
+    }
+
+    function handleLogout() {
+      const token = localStorage.getItem('EngageFlow_token');
+      if (token) {
+        fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      }
+      localStorage.removeItem('EngageFlow_token');
+      window.location.reload();
+    }
+
+    function updateUserUI() {
+      if (state.currentUser) {
+        document.getElementById('userProfileBadge').classList.remove('hidden');
+        document.getElementById('navUserName').innerText = state.currentUser.name;
+        document.getElementById('navUserEmail').innerText = state.currentUser.email;
+      }
+    }
+
+    // LOAD REAL DATA
+    async function loadRealData() {
+      try {
+        // 1. Instagram Status
+        const igRes = await fetch('/api/instagram/status');
+        const igData = await igRes.json();
+        if (igData.success) {
+          state.instagram = igData.instagram;
+          updateInstagramUI();
+        }
+
+        // 2. Rules
+        const rulesRes = await fetch('/api/rules');
+        const rulesData = await rulesRes.json();
+        if (rulesData.success) {
+          state.rules = rulesData.rules;
+          renderRules();
+        }
+
+        // 3. Metrics
+        const mRes = await fetch('/api/metrics');
+        const mData = await mRes.json();
+        if (mData.success) {
+          state.metrics = mData.metrics;
+          document.getElementById('statRealDms').innerText = state.metrics.totalDMsSent || 0;
+          document.getElementById('statRealRules').innerText = state.rules.length;
+        }
+
+        // 4. Leads
+        const leadsRes = await fetch('/api/leads');
+        const leadsData = await leadsRes.json();
+        if (leadsData.success) {
+          state.leads = leadsData.leads;
+          renderLeads();
+        }
+      } catch (err) {
+        console.error('Error loading real data:', err);
+      }
+      refreshIcons();
+    }
+
+    function updateInstagramUI() {
+      const banner = document.getElementById('unconnectedBanner');
+      const badge = document.getElementById('headerAccountBadge');
+      const statStatus = document.getElementById('statIgStatus');
+      const statFollowers = document.getElementById('statIgFollowers');
+      const simUsername = document.getElementById('simHeaderUsername');
+
+      if (state.instagram.connected) {
+        if (banner) banner.classList.add('hidden');
+        badge.innerHTML = `
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800 border border-white/10 text-xs">
+            <img src="${state.instagram.profilePic}" class="w-5 h-5 rounded-full object-cover border border-violet-500" alt="Avatar">
+            <span class="font-bold text-white">${state.instagram.username}</span>
+            <span class="text-[9px] text-emerald-400 font-bold">CONNECTED</span>
+          </div>
+        `;
+        statStatus.innerHTML = `
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-emerald-400">${state.instagram.username}</span>
+        `;
+        statFollowers.innerText = `${(state.instagram.followersCount || 0).toLocaleString()} Followers`;
+        if (simUsername) simUsername.innerText = state.instagram.username;
+      } else {
+        if (banner) banner.classList.remove('hidden');
+        badge.innerHTML = `
+          <button onclick="openConnectModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-violet-600/20 hover:bg-violet-600/30 border border-violet-500/40 text-violet-300 text-xs font-semibold transition">
+            <i data-lucide="link-2" class="w-3.5 h-3.5"></i>
+            <span>Connect Instagram</span>
+          </button>
+        `;
+        statStatus.innerHTML = `
+          <span class="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
+          <span class="text-slate-400">Not Connected</span>
+        `;
+        statFollowers.innerText = "Meta Graph API";
+      }
+      refreshIcons();
+    }
+
+    // CONNECT INSTAGRAM MODAL
+    function openConnectModal() {
+      document.getElementById('connectModal').classList.remove('hidden');
+      document.getElementById('connectErrorBox').classList.add('hidden');
+      refreshIcons();
+    }
+    function closeConnectModal() {
+      document.getElementById('connectModal').classList.add('hidden');
+    }
+
+    async function submitInstagramConnect() {
+      const accountId = document.getElementById('connAccountId').value.trim();
+      const accessToken = document.getElementById('connAccessToken').value.trim();
+      const appId = document.getElementById('connAppId').value.trim();
+      const appSecret = document.getElementById('connAppSecret').value.trim();
+      const errBox = document.getElementById('connectErrorBox');
+      const btn = document.getElementById('btnSubmitConnect');
+
+      if (!accountId || !accessToken) {
+        errBox.innerText = 'Instagram Business Account ID and Access Token are required.';
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'Validating with Meta...';
+      errBox.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/instagram/connect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accountId, accessToken, appId, appSecret })
+        });
+        const data = await res.json();
+        if (data.success) {
+          state.instagram = data.instagram;
+          updateInstagramUI();
+          closeConnectModal();
+          showToast(`Connected to ${data.instagram.username}!`);
+        } else {
+          errBox.innerText = data.error || 'Failed to connect account';
+          errBox.classList.remove('hidden');
+        }
+      } catch (err) {
+        errBox.innerText = 'Network error while contacting server';
+        errBox.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i><span>Verify & Connect Real Account</span>';
+        refreshIcons();
+      }
+    }
+
+    // RULES RENDERING
+    function renderRules() {
+      const dbList = document.getElementById('dashboardRulesList');
+      const studioGrid = document.getElementById('studioRulesContainer');
+      const badge = document.getElementById('ruleCountBadge');
+      if (badge) badge.innerText = state.rules.length;
+      document.getElementById('statRealRules').innerText = state.rules.length;
+
+      if (!state.rules.length) {
+        if (dbList) {
+          dbList.innerHTML = `
+            <div class="text-center py-10 border border-dashed border-white/10 rounded-2xl space-y-2">
+              <i data-lucide="inbox" class="w-6 h-6 text-slate-500 mx-auto"></i>
+              <div class="font-bold text-xs text-slate-300">No Automation Rules Created Yet</div>
+              <p class="text-[11px] text-slate-500">Click below to add a keyword rule.</p>
+              <button onclick="openNewRuleModal()" class="px-3.5 py-1.5 rounded-lg bg-violet-600 text-white text-xs font-bold transition">+ Create Rule</button>
+            </div>
+          `;
+        }
+        if (studioGrid) {
+          studioGrid.innerHTML = `
+            <div class="col-span-full text-center py-16 space-y-2">
+              <i data-lucide="sliders" class="w-8 h-8 text-slate-600 mx-auto"></i>
+              <div class="font-bold text-sm text-slate-300">No Rules Found</div>
+              <p class="text-xs text-slate-500">Configure your first keyword automation rule.</p>
+            </div>
+          `;
+        }
+        refreshIcons();
+        return;
+      }
+
+      // Render Active Rules
+      const rulesHtml = state.rules.map(r => `
+        <div class="glass-card rounded-xl p-4 border border-white/5 flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-violet-600/20 text-violet-400 flex items-center justify-center font-bold text-xs flex-shrink-0">
+              <i data-lucide="message-square" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h4 class="font-bold text-sm text-white">${r.name}</h4>
+                <span class="px-2 py-0.5 rounded-full ${r.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800 text-slate-500'} text-[10px] font-mono">${r.status.toUpperCase()}</span>
+              </div>
+              <div class="flex flex-wrap gap-1 mt-1">
+                ${(r.triggers || []).map(t => `<span class="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-mono text-cyan-400">#${t}</span>`).join('')}
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="toggleRule('${r.id}')" class="px-3 py-1.5 rounded-lg bg-slate-800 text-xs text-slate-200">${r.status === 'active' ? 'Pause' : 'Activate'}</button>
+            <button onclick="deleteRule('${r.id}')" class="p-1.5 rounded-lg hover:bg-rose-500/20 text-slate-500 hover:text-rose-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          </div>
+        </div>
+      `).join('');
+
+      if (dbList) dbList.innerHTML = rulesHtml;
+      if (studioGrid) studioGrid.innerHTML = rulesHtml;
+      refreshIcons();
+    }
+
+    function openNewRuleModal() {
+      document.getElementById('ruleModal').classList.remove('hidden');
+      refreshIcons();
+    }
+    function closeRuleModal() {
+      document.getElementById('ruleModal').classList.add('hidden');
+    }
+
+    async function submitSaveRule() {
+      const name = document.getElementById('modalRuleName').value.trim();
+      const triggersRaw = document.getElementById('modalRuleTriggers').value.trim();
+      const publicReply = document.getElementById('modalRulePublicReply').value.trim();
+      const dmText = document.getElementById('modalRuleDmText').value.trim();
+      const btnLabel = document.getElementById('modalBtnLabel').value.trim();
+      const btnUrl = document.getElementById('modalBtnUrl').value.trim();
+
+      if (!name || !triggersRaw) return alert('Rule Name and Trigger Keywords are required.');
+
+      const triggers = triggersRaw.split(',').map(t => t.trim().toUpperCase()).filter(Boolean);
+      const buttons = btnLabel ? [{ label: btnLabel, url: btnUrl || 'https://example.com' }] : [];
+
+      const newRule = {
+        name,
+        triggers,
+        publicReply: publicReply || 'Sent the link to your DMs! 🚀',
+        dmMessage: dmText || 'Hey {{name}}! Here is your link:',
+        buttons,
+        status: 'active'
+      };
+
+      try {
+        const res = await fetch('/api/rules', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newRule)
+        });
+        const data = await res.json();
+        if (data.success) {
+          state.rules.unshift(data.rule);
+          renderRules();
+          closeRuleModal();
+          showToast(`Rule "${name}" created!`);
+        }
+      } catch (e) {
+        alert('Could not save rule');
+      }
+    }
+
+    async function toggleRule(id) {
+      try {
+        const res = await fetch('/api/rules/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ruleId: id })
+        });
+        const data = await res.json();
+        if (data.success) {
+          const r = state.rules.find(x => x.id === id);
+          if (r) r.status = data.rule.status;
+          renderRules();
+        }
+      } catch (e) {}
+    }
+
+    async function deleteRule(id) {
+      if (!confirm('Are you sure you want to delete this rule?')) return;
+      try {
+        await fetch(`/api/rules/${id}`, { method: 'DELETE' });
+        state.rules = state.rules.filter(r => r.id !== id);
+        renderRules();
+        showToast('Rule deleted.');
+      } catch (e) {}
+    }
+
+    // LEADS RENDERING
+    function renderLeads() {
+      const container = document.getElementById('leadsTableContainer');
+      const badge = document.getElementById('leadsCountBadge');
+      if (badge) badge.innerText = state.leads.length;
+      document.getElementById('statRealLeads').innerText = state.leads.length;
+
+      if (!state.leads.length) {
+        container.innerHTML = `
+          <div class="text-center py-16 space-y-2">
+            <i data-lucide="users" class="w-8 h-8 text-slate-500 mx-auto"></i>
+            <div class="font-bold text-sm text-slate-300">No Leads Captured Yet</div>
+            <p class="text-xs text-slate-500 max-w-sm mx-auto">Once your Instagram account is connected and followers start commenting with trigger keywords, captured leads will appear here.</p>
+          </div>
+        `;
+        refreshIcons();
+        return;
+      }
+
+      container.innerHTML = `
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-900/60 text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
+            <tr>
+              <th class="py-3 px-4">Username</th>
+              <th class="py-3 px-4">Name</th>
+              <th class="py-3 px-4">Trigger Rule</th>
+              <th class="py-3 px-4">Date</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5 text-slate-300">
+            ${state.leads.map(lead => `
+              <tr>
+                <td class="py-3 px-4 font-bold text-white">${lead.username}</td>
+                <td class="py-3 px-4">${lead.fullName || '—'}</td>
+                <td class="py-3 px-4">${lead.triggerRule}</td>
+                <td class="py-3 px-4 font-mono text-[11px] text-slate-500">${lead.timestamp?.split('T')[0] || ''}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+      refreshIcons();
+    }
+
+    function exportLeadsCsv() {
+      window.location.href = '/api/leads/export-csv';
+    }
+
+    // SIMULATOR
+    async function postSimulatorComment() {
+      const input = document.getElementById('simInput');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+
+      const list = document.getElementById('simCommentsList');
+      const userEl = document.createElement('div');
+      userEl.className = "flex gap-2 text-xs";
+      userEl.innerHTML = `
+        <div class="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-[10px] text-white font-bold flex-shrink-0">YOU</div>
+        <div class="flex-1">
+          <span class="font-bold text-white text-[11px]">@viewer</span>
+          <p class="text-[11px] text-slate-200">${text}</p>
+        </div>
+      `;
+      list.appendChild(userEl);
+      list.scrollTop = list.scrollHeight;
+
+      try {
+        const res = await fetch('/api/simulate/comment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ comment: text, username: '@viewer' })
+        });
+        const data = await res.json();
+        if (data.success) {
+          const sim = data.simulation;
+          setTimeout(() => {
+            const replyEl = document.createElement('div');
+            replyEl.className = "flex gap-2 text-xs ml-4 pl-2 border-l border-violet-500/30";
+            replyEl.innerHTML = `
+              <div class="w-5 h-5 rounded-full bg-violet-600 flex items-center justify-center text-[9px] text-white font-bold flex-shrink-0">IG</div>
+              <div class="flex-1">
+                <span class="font-bold text-violet-400 text-[11px]">${state.instagram.username || '@creator'}</span>
+                <p class="text-[11px] text-slate-200">${sim.publicReply}</p>
+              </div>
+            `;
+            list.appendChild(replyEl);
+            list.scrollTop = list.scrollHeight;
+
+            // Show DM banner
+            const banner = document.getElementById('simDmBanner');
+            const dmText = document.getElementById('simDmText');
+            const btns = document.getElementById('simDmButtons');
+            dmText.innerText = sim.dmPayload.message;
+            btns.innerHTML = (sim.dmPayload.buttons || []).map(b => `
+              <a href="${b.url}" target="_blank" class="block w-full py-1.5 text-center rounded-lg bg-violet-600 text-white font-bold text-[11px]">${b.label}</a>
+            `).join('');
+            banner.classList.remove('hidden');
+          }, 800);
+        }
+      } catch (e) {}
+    }
+
+    // Startup
+    window.addEventListener('DOMContentLoaded', () => {
+      checkAuth();
+    });
+  </script>
+</body>
+</html>

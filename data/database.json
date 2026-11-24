@@ -1,0 +1,64 @@
+{
+  "users": [
+    {
+      "id": "usr_1795535813359",
+      "name": "Public Creator",
+      "email": "creator@devstudio.com",
+      "salt": "12ffb16adc8a33344ae84fe005dd1137",
+      "passwordHash": "e53813250c912ec8f188ce76c8c75f34fb0e8b57e6f7f920ca89f444464ea629f3bf75d5d8455dcc6eab5c2e8f4fa7591ac804214da77eb55de02d0d31fa3c81",
+      "createdAt": "2026-11-24T15:56:53.359Z"
+    },
+    {
+      "id": "usr_1795536066314",
+      "name": "Piyush sadar",
+      "email": "piyushsadar99@gmail.com",
+      "salt": "f8a849c92589023abb40c4b7f094a598",
+      "passwordHash": "5be6c8e92bde7d2969f76b91c50fe791057aea7028aa57fec949a2393aa94bcbfba0f174ff26accd1bb642b3efab9dee21afcf5b4ac45fe5025f49e71e9ca4d5",
+      "createdAt": "2026-11-24T16:01:06.314Z"
+    }
+  ],
+  "sessions": [
+    {
+      "token": "2b6b78a0c39b20aa473df9ab360a6c9cbfda95da55abc9e8e971fb69e1a53bd2",
+      "userId": "usr_1795535813359",
+      "email": "creator@devstudio.com",
+      "createdAt": "2026-11-24T15:56:53.360Z",
+      "expiresAt": "2026-12-24T15:56:53.360Z"
+    },
+    {
+      "token": "d731adf72152b71cbd6b388b17e15179a7ae1e0fdd0d36cf4162bdc4d13128c0",
+      "userId": "usr_1795535813359",
+      "email": "creator@devstudio.com",
+      "createdAt": "2026-11-24T15:57:05.421Z",
+      "expiresAt": "2026-12-24T15:57:05.421Z"
+    },
+    {
+      "token": "36c0b6d708d0a8919d0ff84c1e2b0856a693639493558370f809cdf783288077",
+      "userId": "usr_1795536066314",
+      "email": "piyushsadar99@gmail.com",
+      "createdAt": "2026-11-24T16:01:06.314Z",
+      "expiresAt": "2026-12-24T16:01:06.314Z"
+    }
+  ],
+  "instagram": {
+    "connected": false,
+    "accountId": "",
+    "username": "",
+    "name": "",
+    "profilePic": "",
+    "followersCount": 0,
+    "mediaCount": 0,
+    "accessToken": "",
+    "appId": "",
+    "appSecret": "",
+    "webhookVerifyToken": "engageflow_webhook_secret_2026"
+  },
+  "rules": [],
+  "leads": [],
+  "activityLogs": [],
+  "metrics": {
+    "totalDMsSent": 0,
+    "hourlyDMsSent": 0,
+    "lastResetHour": 0
+  }
+}

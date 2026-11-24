@@ -451,11 +451,96 @@ const server = http.createServer(async (req, res) => {
       }
     } else {
       // clientSecret is needed for server-to-server token exchange
+      global.latestPendingAuthCode = code;
       console.log('[OAuth] App Secret is required to complete token exchange. Redirecting with code.');
       res.writeHead(302, { Location: `/?auth_code=${encodeURIComponent(code)}&need_secret=true` });
       res.end();
       return;
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 1.55. CONFIGURE APP SECRET (Auto-complete pending OAuth exchange)
+  // ---------------------------------------------------------------------------
+  if (pathname === '/api/instagram/configure-secret' && method === 'POST') {
+    const body = await parseBody(req);
+    const { appSecret } = body;
+    if (!appSecret) {
+      sendJson(res, 400, { success: false, error: 'App Secret is required.' });
+      return;
+    }
+
+    const db = readDatabase();
+    db.instagram.appSecret = appSecret.trim();
+    writeDatabase(db);
+    console.log('[Meta] Configured Meta App Secret in database!');
+
+    if (global.latestPendingAuthCode) {
+      const clientId = '3050678375263805';
+      const redirectUri = 'https://decreased-sciences-participated-drums.trycloudflare.com/api/auth/facebook/callback';
+      try {
+        console.log('[OAuth Auto-Exchange] Exchanging pending authorization code with Meta...');
+        const tokenExchangeUrl = `https://graph.facebook.com/v21.0/oauth/access_token?client_id=${clientId}&client_secret=${appSecret.trim()}&redirect_uri=${encodeURIComponent(redirectUri)}&code=${global.latestPendingAuthCode}`;
+        const tokenRes = await httpsGet(tokenExchangeUrl);
+
+        if (tokenRes.body && tokenRes.body.access_token) {
+          const userToken = tokenRes.body.access_token;
+          const pagesUrl = `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,access_token,instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count}&access_token=${userToken}`;
+          const pagesRes = await httpsGet(pagesUrl);
+
+          const accounts = pagesRes.body?.data || [];
+          let connectedIg = null;
+          let pageToken = '';
+          for (const acc of accounts) {
+            if (acc.instagram_business_account) {
+              connectedIg = acc.instagram_business_account;
+              pageToken = acc.access_token || userToken;
+              break;
+            }
+          }
+
+          if (connectedIg) {
+            db.instagram.connected = true;
+            db.instagram.accountId = connectedIg.id;
+            db.instagram.username = `@${connectedIg.username}`;
+            db.instagram.name = connectedIg.name || connectedIg.username;
+            db.instagram.profilePic = connectedIg.profile_picture_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
+            db.instagram.followersCount = connectedIg.followers_count || 0;
+            db.instagram.mediaCount = connectedIg.media_count || 0;
+            db.instagram.accessToken = pageToken;
+            db.instagram.appId = clientId;
+
+            // Auto-Sync recent media
+            try {
+              const mediaUrl = `https://graph.facebook.com/v21.0/${connectedIg.id}/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,comments_count,like_count&access_token=${pageToken}&limit=30`;
+              const mediaRes = await httpsGet(mediaUrl);
+              if (mediaRes.body && mediaRes.body.data) {
+                db.reels = mediaRes.body.data.map(m => ({
+                  id: m.id,
+                  caption: m.caption || '',
+                  permalink: m.permalink || '',
+                  mediaType: m.media_type,
+                  thumbnailUrl: m.thumbnail_url || m.media_url || '',
+                  likeCount: m.like_count || 0,
+                  commentsCount: m.comments_count || 0,
+                  timestamp: m.timestamp
+                }));
+              }
+            } catch (e) {}
+
+            writeDatabase(db);
+            console.log(`[OAuth Auto-Exchange] Successfully connected @${connectedIg.username}!`);
+            sendJson(res, 200, { success: true, connected: true, username: `@${connectedIg.username}`, instagram: db.instagram });
+            return;
+          }
+        }
+      } catch (e) {
+        console.error('[OAuth Auto-Exchange] Exception:', e.message);
+      }
+    }
+
+    sendJson(res, 200, { success: true, connected: false, message: 'App Secret saved! Now click 1-Click Connect to finish.' });
+    return;
   }
 
   // ---------------------------------------------------------------------------

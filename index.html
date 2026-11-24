@@ -315,6 +315,31 @@
         </div>
       </div>
 
+      <!-- Synced Reels & Posts Section -->
+      <div class="glass-panel rounded-2xl p-6 border border-white/5 space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              <i data-lucide="video" class="w-4 h-4 text-pink-400"></i>
+              <span>Synced Instagram Reels & Posts</span>
+            </h2>
+            <p class="text-xs text-slate-400">Posts automatically monitored by the 2-minute background scanner</p>
+          </div>
+          <button onclick="syncInstagramReels()" id="btnSyncReels" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 text-xs font-semibold flex items-center gap-1.5 transition">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span id="btnSyncReelsText">Sync Reels Now</span>
+          </button>
+        </div>
+
+        <div id="reelsContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div class="col-span-full text-center py-8 border border-dashed border-white/10 rounded-2xl space-y-2">
+            <i data-lucide="camera" class="w-6 h-6 text-slate-500 mx-auto"></i>
+            <div class="font-bold text-xs text-slate-300">No Synced Media Yet</div>
+            <p class="text-[11px] text-slate-500">Connect your Instagram account to automatically sync your latest posts and reels.</p>
+          </div>
+        </div>
+      </div>
+
     </section>
 
     <!-- ======================================================================= -->
@@ -656,11 +681,13 @@
 
   <!-- Client Script -->
   <script>
+    let pendingAuthCode = '';
     let state = {
       currentUser: null,
       instagram: { connected: false },
       rules: [],
       leads: [],
+      reels: [],
       metrics: { totalDMsSent: 0 }
     };
 
@@ -718,6 +745,18 @@
     async function checkAuth() {
       // Check OAuth return params
       const urlParams = new URLSearchParams(window.location.search);
+      pendingAuthCode = urlParams.get('auth_code') || '';
+
+      if (urlParams.get('session_token')) {
+        localStorage.setItem('EngageFlow_token', urlParams.get('session_token'));
+      }
+
+      if (urlParams.get('need_secret') && pendingAuthCode) {
+        document.getElementById('oauthSecretModal').classList.remove('hidden');
+        document.getElementById('authModal').classList.add('hidden');
+        refreshIcons();
+      }
+
       if (urlParams.get('oauth_success')) {
         showToast(`🎉 Connected to ${urlParams.get('username') || 'Instagram'}!`);
         window.history.replaceState({}, document.title, window.location.pathname);
@@ -728,7 +767,9 @@
 
       const token = localStorage.getItem('EngageFlow_token');
       if (!token) {
-        document.getElementById('authModal').classList.remove('hidden');
+        if (!urlParams.get('need_secret')) {
+          document.getElementById('authModal').classList.remove('hidden');
+        }
         refreshIcons();
         return;
       }
@@ -745,12 +786,72 @@
           loadRealData();
         } else {
           localStorage.removeItem('EngageFlow_token');
-          document.getElementById('authModal').classList.remove('hidden');
+          if (!urlParams.get('need_secret')) {
+            document.getElementById('authModal').classList.remove('hidden');
+          }
         }
       } catch (e) {
-        document.getElementById('authModal').classList.remove('hidden');
+        if (!urlParams.get('need_secret')) {
+          document.getElementById('authModal').classList.remove('hidden');
+        }
       }
       refreshIcons();
+    }
+
+    // SUBMIT OAUTH APP SECRET TO COMPLETE TOKEN EXCHANGE
+    async function submitOauthSecret() {
+      const secretInput = document.getElementById('oauthAppSecretInput');
+      const appSecret = secretInput.value.trim();
+      const errBox = document.getElementById('oauthSecretError');
+      const btn = document.getElementById('btnSubmitOauthSecret');
+
+      if (!appSecret) {
+        errBox.innerText = 'Please enter your Meta App Secret.';
+        errBox.classList.remove('hidden');
+        return;
+      }
+      if (!pendingAuthCode) {
+        errBox.innerText = 'No authorization code detected. Please click 1-Click Connect again.';
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'Validating with Meta & Syncing...';
+      errBox.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/auth/facebook/exchange-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: pendingAuthCode, appSecret })
+        });
+        const data = await res.json();
+        if (data.success) {
+          if (data.token) {
+            localStorage.setItem('EngageFlow_token', data.token);
+            state.currentUser = data.user;
+            updateUserUI();
+          }
+          state.instagram = data.instagram;
+          document.getElementById('oauthSecretModal').classList.add('hidden');
+          document.getElementById('authModal').classList.add('hidden');
+          window.history.replaceState({}, document.title, window.location.pathname);
+          updateInstagramUI();
+          loadRealData();
+          showToast(`🎉 Connected to ${data.instagram.username} with ${data.reelsCount || 0} reels synced!`);
+        } else {
+          errBox.innerText = data.error || 'Failed to exchange authorization code.';
+          errBox.classList.remove('hidden');
+        }
+      } catch (e) {
+        errBox.innerText = 'Network error while contacting server.';
+        errBox.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i><span>Complete Connection & Sync</span>';
+        refreshIcons();
+      }
     }
 
     async function handleLogin() {
@@ -863,10 +964,80 @@
           state.leads = leadsData.leads;
           renderLeads();
         }
+
+        // 5. Synced Reels
+        const reelsRes = await fetch('/api/reels');
+        const reelsData = await reelsRes.json();
+        if (reelsData.success) {
+          state.reels = reelsData.reels || [];
+          renderReels(state.reels);
+        }
       } catch (err) {
         console.error('Error loading real data:', err);
       }
       refreshIcons();
+    }
+
+    function renderReels(reels) {
+      const container = document.getElementById('reelsContainer');
+      if (!container) return;
+
+      if (!reels || !reels.length) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-8 border border-dashed border-white/10 rounded-2xl space-y-2">
+            <i data-lucide="camera" class="w-6 h-6 text-slate-500 mx-auto"></i>
+            <div class="font-bold text-xs text-slate-300">No Synced Media Found</div>
+            <p class="text-[11px] text-slate-500">${state.instagram.connected ? 'Click "Sync Reels Now" to load your latest posts.' : 'Connect your Instagram account to sync reels.'}</p>
+          </div>
+        `;
+        refreshIcons();
+        return;
+      }
+
+      container.innerHTML = reels.map(r => `
+        <div class="glass-card rounded-xl overflow-hidden border border-white/5 flex flex-col group hover:border-violet-500/40 transition">
+          <div class="relative aspect-[9/16] bg-slate-900 overflow-hidden">
+            ${r.thumbnailUrl ? `<img src="${r.thumbnailUrl}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" alt="Reel">` : `<div class="w-full h-full flex items-center justify-center text-slate-600"><i data-lucide="video" class="w-8 h-8"></i></div>`}
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-2.5">
+              <div class="flex items-center justify-between text-[11px] text-white font-semibold">
+                <span class="flex items-center gap-1"><i data-lucide="heart" class="w-3 h-3 text-rose-400"></i> ${r.likeCount || 0}</span>
+                <span class="flex items-center gap-1"><i data-lucide="message-circle" class="w-3 h-3 text-cyan-400"></i> ${r.commentsCount || 0}</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-2.5 flex-1 flex flex-col justify-between space-y-1.5 bg-slate-900/60">
+            <p class="text-[10px] text-slate-300 line-clamp-2 leading-relaxed">${r.caption || 'Instagram Media'}</p>
+            ${r.permalink ? `<a href="${r.permalink}" target="_blank" class="text-[9px] text-violet-400 hover:text-violet-300 font-bold flex items-center gap-1"><span>View on IG</span><i data-lucide="external-link" class="w-2.5 h-2.5"></i></a>` : ''}
+          </div>
+        </div>
+      `).join('');
+      refreshIcons();
+    }
+
+    async function syncInstagramReels() {
+      if (!state.instagram.connected) return alert('Please connect your Instagram account first.');
+      const btn = document.getElementById('btnSyncReels');
+      const text = document.getElementById('btnSyncReelsText');
+      btn.disabled = true;
+      text.innerText = 'Syncing from Meta...';
+
+      try {
+        const res = await fetch('/api/instagram/sync', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          state.reels = data.reels || [];
+          renderReels(state.reels);
+          showToast(`Synced ${state.reels.length} posts & reels!`);
+        } else {
+          alert(data.error || 'Failed to sync reels.');
+        }
+      } catch (e) {
+        alert('Network error while syncing reels.');
+      } finally {
+        btn.disabled = false;
+        text.innerText = 'Sync Reels Now';
+        refreshIcons();
+      }
     }
 
     function updateInstagramUI() {

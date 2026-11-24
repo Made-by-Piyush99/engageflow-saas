@@ -375,10 +375,60 @@ const server = http.createServer(async (req, res) => {
             db.instagram.mediaCount = connectedIg.media_count || 0;
             db.instagram.accessToken = pageToken;
             db.instagram.appId = clientId;
+
+            // Auto-Sync recent media
+            try {
+              const mediaUrl = `https://graph.facebook.com/v21.0/${connectedIg.id}/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,comments_count,like_count&access_token=${pageToken}&limit=30`;
+              const mediaRes = await httpsGet(mediaUrl);
+              if (mediaRes.body && mediaRes.body.data) {
+                db.reels = mediaRes.body.data.map(m => ({
+                  id: m.id,
+                  caption: m.caption || '',
+                  permalink: m.permalink || '',
+                  mediaType: m.media_type,
+                  thumbnailUrl: m.thumbnail_url || m.media_url || '',
+                  likeCount: m.like_count || 0,
+                  commentsCount: m.comments_count || 0,
+                  timestamp: m.timestamp
+                }));
+                console.log(`[Sync] Automatically synced ${db.reels.length} Instagram reels/posts for @${connectedIg.username}!`);
+              }
+            } catch (e) {
+              console.error('[Sync] Media fetch warning:', e.message);
+            }
+
+            // Subscribed Apps Handshake
+            try {
+              await httpsPost(`https://graph.facebook.com/v21.0/${connectedIg.id}/subscribed_apps?subscribed_fields=comments,messages&access_token=${pageToken}`, {});
+              console.log('[Meta] Subscribed apps webhook handshake completed successfully!');
+            } catch (e) {}
+
+            // Auto-create or ensure session user
+            let sessionUser = db.users[0];
+            if (!sessionUser) {
+              sessionUser = {
+                id: `usr_${Date.now()}`,
+                name: connectedIg.name || connectedIg.username,
+                email: `${connectedIg.username.toLowerCase()}@instagram.com`,
+                salt: 'oauth',
+                passwordHash: 'oauth',
+                createdAt: new Date().toISOString()
+              };
+              db.users.push(sessionUser);
+            }
+            const sessionToken = generateToken();
+            db.sessions.push({
+              token: sessionToken,
+              userId: sessionUser.id,
+              email: sessionUser.email,
+              createdAt: new Date().toISOString(),
+              expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+            });
+
             writeDatabase(db);
 
             console.log(`[OAuth] Successfully connected Instagram account: @${connectedIg.username}`);
-            res.writeHead(302, { Location: `/?oauth_success=true&username=${encodeURIComponent(connectedIg.username)}` });
+            res.writeHead(302, { Location: `/?oauth_success=true&username=${encodeURIComponent(connectedIg.username)}&session_token=${sessionToken}` });
             res.end();
             return;
           } else {
@@ -406,6 +456,179 @@ const server = http.createServer(async (req, res) => {
       res.end();
       return;
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 1.6. OAUTH TOKEN EXCHANGE VIA CODE & APP SECRET
+  // ---------------------------------------------------------------------------
+  if (pathname === '/api/auth/facebook/exchange-token' && method === 'POST') {
+    const body = await parseBody(req);
+    const { code, appSecret } = body;
+    const clientId = '3050678375263805';
+    const redirectUri = 'https://decreased-sciences-participated-drums.trycloudflare.com/api/auth/facebook/callback';
+
+    if (!code || !appSecret) {
+      sendJson(res, 400, { success: false, error: 'Authorization code and Meta App Secret are required.' });
+      return;
+    }
+
+    try {
+      console.log('[OAuth Exchange] Exchanging authorization code with Meta for User Access Token...');
+      const tokenExchangeUrl = `https://graph.facebook.com/v21.0/oauth/access_token?client_id=${clientId}&client_secret=${appSecret.trim()}&redirect_uri=${encodeURIComponent(redirectUri)}&code=${code.trim()}`;
+      const tokenRes = await httpsGet(tokenExchangeUrl);
+
+      if (!tokenRes.body || !tokenRes.body.access_token) {
+        const errMsg = tokenRes.body?.error?.message || 'Meta rejected code exchange. The code may have expired or App Secret is invalid.';
+        sendJson(res, 400, { success: false, error: errMsg });
+        return;
+      }
+
+      const userToken = tokenRes.body.access_token;
+      console.log('[OAuth Exchange] User token acquired! Querying accounts and Instagram page...');
+
+      const pagesUrl = `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,access_token,instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count}&access_token=${userToken}`;
+      const pagesRes = await httpsGet(pagesUrl);
+
+      const accounts = pagesRes.body?.data || [];
+      let connectedIg = null;
+      let pageToken = '';
+
+      for (const acc of accounts) {
+        if (acc.instagram_business_account) {
+          connectedIg = acc.instagram_business_account;
+          pageToken = acc.access_token || userToken;
+          break;
+        }
+      }
+
+      if (!connectedIg) {
+        sendJson(res, 400, { success: false, error: 'No Instagram Business or Creator account found connected to your Facebook Page. Please ensure your Instagram is connected to a Facebook Page.' });
+        return;
+      }
+
+      const db = readDatabase();
+      db.instagram = {
+        connected: true,
+        accountId: connectedIg.id,
+        username: `@${connectedIg.username}`,
+        name: connectedIg.name || connectedIg.username,
+        profilePic: connectedIg.profile_picture_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        followersCount: connectedIg.followers_count || 0,
+        mediaCount: connectedIg.media_count || 0,
+        accessToken: pageToken,
+        appId: clientId,
+        appSecret: appSecret.trim(),
+        webhookVerifyToken: db.instagram.webhookVerifyToken || 'engageflow_webhook_secret_2026'
+      };
+
+      // Auto-Sync recent media
+      try {
+        const mediaUrl = `https://graph.facebook.com/v21.0/${connectedIg.id}/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,comments_count,like_count&access_token=${pageToken}&limit=30`;
+        const mediaRes = await httpsGet(mediaUrl);
+        if (mediaRes.body && mediaRes.body.data) {
+          db.reels = mediaRes.body.data.map(m => ({
+            id: m.id,
+            caption: m.caption || '',
+            permalink: m.permalink || '',
+            mediaType: m.media_type,
+            thumbnailUrl: m.thumbnail_url || m.media_url || '',
+            likeCount: m.like_count || 0,
+            commentsCount: m.comments_count || 0,
+            timestamp: m.timestamp
+          }));
+          console.log(`[Sync] Automatically synced ${db.reels.length} Instagram reels/posts for @${connectedIg.username}!`);
+        }
+      } catch (e) {
+        console.error('[Sync] Media fetch warning:', e.message);
+      }
+
+      // Subscribed Apps Handshake
+      try {
+        await httpsPost(`https://graph.facebook.com/v21.0/${connectedIg.id}/subscribed_apps?subscribed_fields=comments,messages&access_token=${pageToken}`, {});
+        console.log('[Meta] Subscribed apps webhook handshake completed successfully!');
+      } catch (e) {
+        console.error('[Meta] Subscribed apps warning:', e.message);
+      }
+
+      // Auto-create or ensure session user
+      let sessionUser = db.users[0];
+      if (!sessionUser) {
+        sessionUser = {
+          id: `usr_${Date.now()}`,
+          name: connectedIg.name || connectedIg.username,
+          email: `${connectedIg.username.toLowerCase()}@instagram.com`,
+          salt: 'oauth',
+          passwordHash: 'oauth',
+          createdAt: new Date().toISOString()
+        };
+        db.users.push(sessionUser);
+      }
+      const sessionToken = generateToken();
+      db.sessions.push({
+        token: sessionToken,
+        userId: sessionUser.id,
+        email: sessionUser.email,
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      });
+
+      writeDatabase(db);
+
+      sendJson(res, 200, {
+        success: true,
+        message: `Successfully connected and synced @${connectedIg.username}!`,
+        token: sessionToken,
+        user: { id: sessionUser.id, name: sessionUser.name, email: sessionUser.email },
+        instagram: db.instagram,
+        reelsCount: (db.reels || []).length
+      });
+    } catch (err) {
+      console.error('[OAuth Exchange] Error:', err);
+      sendJson(res, 500, { success: false, error: err.message });
+    }
+    return;
+  }
+
+  // ---------------------------------------------------------------------------
+  // 1.7. SYNC REELS API
+  // ---------------------------------------------------------------------------
+  if (pathname === '/api/instagram/sync' && method === 'POST') {
+    const db = readDatabase();
+    if (!db.instagram.connected || !db.instagram.accessToken || !db.instagram.accountId) {
+      sendJson(res, 400, { success: false, error: 'Instagram account is not connected.' });
+      return;
+    }
+
+    try {
+      const mediaUrl = `https://graph.facebook.com/v21.0/${db.instagram.accountId}/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,comments_count,like_count&access_token=${db.instagram.accessToken}&limit=50`;
+      const mediaRes = await httpsGet(mediaUrl);
+
+      if (mediaRes.body && mediaRes.body.data) {
+        db.reels = mediaRes.body.data.map(m => ({
+          id: m.id,
+          caption: m.caption || '',
+          permalink: m.permalink || '',
+          mediaType: m.media_type,
+          thumbnailUrl: m.thumbnail_url || m.media_url || '',
+          likeCount: m.like_count || 0,
+          commentsCount: m.comments_count || 0,
+          timestamp: m.timestamp
+        }));
+        writeDatabase(db);
+        sendJson(res, 200, { success: true, message: `Synced ${db.reels.length} reels/posts!`, reels: db.reels });
+      } else {
+        sendJson(res, 400, { success: false, error: mediaRes.body?.error?.message || 'Could not fetch media' });
+      }
+    } catch (err) {
+      sendJson(res, 500, { success: false, error: err.message });
+    }
+    return;
+  }
+
+  if (pathname === '/api/reels' && method === 'GET') {
+    const db = readDatabase();
+    sendJson(res, 200, { success: true, reels: db.reels || [] });
+    return;
   }
 
   // ---------------------------------------------------------------------------
@@ -798,5 +1021,102 @@ server.listen(PORT, () => {
   console.log(`📡 URL: http://localhost:${PORT}`);
   console.log(`🔒 Authentication & Real Meta Connect Engine Active`);
   console.log(`📁 Zero Fake Data — Database: ./data/database.json`);
+  console.log(`⏱️ 2-Minute Automated Fail-Safe Scanner Active`);
   console.log(`=============================================================`);
 });
+
+// =============================================================================
+// 2-MINUTE AUTOMATED COMMENT SCANNER ENGINE (FAIL-SAFE BACKGROUND POLL)
+// =============================================================================
+const SCAN_INTERVAL_MS = 2 * 60 * 1000;
+let isScanning = false;
+
+async function scanAndProcessLiveComments() {
+  if (isScanning) return;
+  const db = readDatabase();
+  if (!db.instagram.connected || !db.instagram.accessToken || !db.instagram.accountId) return;
+  if (!db.rules || !db.rules.length) return;
+
+  const activeRules = db.rules.filter(r => r.status === 'active');
+  if (!activeRules.length) return;
+
+  isScanning = true;
+  console.log(`[2-Min Scanner] ⏱️ Checking live comments for ${db.instagram.username} (${activeRules.length} active rules)...`);
+
+  try {
+    const token = db.instagram.accessToken;
+    if (!Array.isArray(db.processedCommentIds)) db.processedCommentIds = [];
+
+    const reelsToScan = (db.reels || []).slice(0, 15);
+    let newDMsSent = 0;
+
+    for (const reel of reelsToScan) {
+      try {
+        const commentsUrl = `https://graph.facebook.com/v21.0/${reel.id}/comments?fields=id,text,username,timestamp,from&access_token=${token}&limit=25`;
+        const cRes = await httpsGet(commentsUrl);
+        const comments = cRes.body?.data || [];
+
+        for (const c of comments) {
+          if (!c.id || db.processedCommentIds.includes(c.id)) continue;
+
+          const commentText = (c.text || '').trim().toUpperCase();
+          const commenterUsername = c.from?.username || c.username || 'follower';
+          const commenterId = c.from?.id;
+
+          for (const rule of activeRules) {
+            const isMatch = rule.triggers.some(t => commentText.includes(t));
+            if (isMatch) {
+              console.log(`[2-Min Scanner] 🔥 Matched rule "${rule.name}" for comment: "${c.text}" by @${commenterUsername}`);
+
+              // 1. Post public comment reply
+              if (rule.publicReply) {
+                const replyUrl = `https://graph.facebook.com/v21.0/${c.id}/replies?access_token=${token}`;
+                await httpsPost(replyUrl, { message: rule.publicReply.replace(/\{\{name\}\}/g, `@${commenterUsername}`) });
+              }
+
+              // 2. Dispatch Direct Message
+              if (commenterId) {
+                const dmUrl = `https://graph.facebook.com/v21.0/me/messages?access_token=${token}`;
+                await httpsPost(dmUrl, {
+                  recipient: { id: commenterId },
+                  message: { text: rule.dmMessage.replace(/\{\{name\}\}/g, commenterUsername) }
+                });
+                newDMsSent++;
+              }
+
+              // Record Lead
+              db.leads.unshift({
+                id: `lead_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+                username: `@${commenterUsername}`,
+                fullName: commenterUsername,
+                triggerRule: rule.name,
+                status: 'Converted',
+                timestamp: new Date().toISOString()
+              });
+
+              rule.stats.triggered = (rule.stats.triggered || 0) + 1;
+              db.metrics.totalDMsSent = (db.metrics.totalDMsSent || 0) + 1;
+              break;
+            }
+          }
+
+          db.processedCommentIds.push(c.id);
+          if (db.processedCommentIds.length > 5000) db.processedCommentIds.shift();
+        }
+      } catch (e) {}
+    }
+
+    if (newDMsSent > 0) {
+      console.log(`[2-Min Scanner] ✅ Dispatched ${newDMsSent} automated DMs via scanner!`);
+      writeDatabase(db);
+    }
+  } catch (err) {
+    console.error('[2-Min Scanner] Exception:', err.message);
+  } finally {
+    isScanning = false;
+  }
+}
+
+// Start recurring 2-minute timer
+setInterval(scanAndProcessLiveComments, SCAN_INTERVAL_MS);
+console.log(`[Scanner] 2-Minute Background Scanner active and scheduled.`);

@@ -215,13 +215,17 @@
         </div>
       </div>
       <div class="flex flex-wrap items-center gap-3">
-        <button onclick="startMetaOauth()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white text-xs font-bold shadow-lg shadow-blue-600/30 flex items-center gap-2 transition transform active:scale-95">
-          <i data-lucide="facebook" class="w-4 h-4 text-white"></i>
-          <span>1-Click Connect with Instagram</span>
+        <button onclick="startInstagramDirectOauth()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 hover:opacity-95 text-white text-xs font-bold shadow-lg shadow-rose-600/30 flex items-center gap-2 transition transform active:scale-95">
+          <i data-lucide="instagram" class="w-4 h-4 text-white"></i>
+          <span>Direct Instagram Login (1-Click)</span>
         </button>
-        <button onclick="openConnectModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 text-xs font-semibold flex items-center gap-1.5 transition">
+        <button onclick="startMetaOauth()" class="px-4 py-2.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 text-xs font-semibold flex items-center gap-1.5 transition">
+          <i data-lucide="facebook" class="w-4 h-4"></i>
+          <span>Facebook Page Connect</span>
+        </button>
+        <button onclick="openConnectModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-white/10 text-xs font-semibold flex items-center gap-1.5 transition">
           <i data-lucide="key" class="w-4 h-4 text-cyan-400"></i>
-          <span>Manual Keys Entry</span>
+          <span>Manual Keys</span>
         </button>
       </div>
     </div>
@@ -576,12 +580,12 @@
       </div>
 
       <div class="flex items-center gap-3 pt-2">
-        <button onclick="closeNoticeModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition">
+        <button onclick="closeNoticeModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition">
           Dismiss
         </button>
-        <button onclick="closeNoticeModal(); startMetaOauth();" id="noticeModalActionBtn" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-1.5">
-          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-          <span>Try Again</span>
+        <button onclick="closeNoticeModal(); startInstagramDirectOauth();" id="noticeModalActionBtn" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 hover:opacity-95 text-white text-xs font-bold shadow-lg shadow-rose-600/30 transition flex items-center justify-center gap-1.5">
+          <i data-lucide="instagram" class="w-3.5 h-3.5"></i>
+          <span>Try Direct Instagram Login</span>
         </button>
       </div>
 
@@ -605,13 +609,19 @@
       <div class="p-4 rounded-xl bg-gradient-to-r from-blue-600/20 via-indigo-600/20 to-violet-600/20 border border-blue-500/30 text-center space-y-2">
         <div class="text-xs font-bold text-white flex items-center justify-center gap-1.5">
           <i data-lucide="zap" class="w-4 h-4 text-cyan-400"></i>
-          <span>Recommended Method (Zero Manual Setup)</span>
+          <span>Recommended 1-Click Connect</span>
         </div>
-        <p class="text-[11px] text-slate-300">Connect in 1 click using your official Meta Facebook login:</p>
-        <button onclick="startMetaOauth()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-lg shadow-blue-600/30 transition transform active:scale-95">
-          <i data-lucide="facebook" class="w-4 h-4"></i>
-          <span>1-Click Connect with Instagram</span>
-        </button>
+        <p class="text-[11px] text-slate-300">Choose your preferred login method:</p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-2 pt-1">
+          <button onclick="startInstagramDirectOauth()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 hover:opacity-95 text-white font-bold text-xs shadow-lg shadow-rose-600/30 transition transform active:scale-95">
+            <i data-lucide="instagram" class="w-4 h-4"></i>
+            <span>Direct Instagram Login</span>
+          </button>
+          <button onclick="startMetaOauth()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600/30 hover:bg-blue-600/40 text-blue-300 border border-blue-500/30 text-xs font-semibold transition">
+            <i data-lucide="facebook" class="w-4 h-4"></i>
+            <span>Facebook Page Login</span>
+          </button>
+        </div>
       </div>
 
       <div class="flex items-center gap-2 my-2">
@@ -740,7 +750,16 @@
       return fetch(url, options);
     }
 
-    // Launch Meta OAuth with the logged-in user's token in state
+    // Direct Instagram Login (Bypasses Facebook Login / Facebook Pages)
+    function startInstagramDirectOauth() {
+      const token = localStorage.getItem('EngageFlow_token') || '';
+      const clientId = '3050678375263805';
+      const redirectUri = `${window.location.origin}/api/auth/facebook/callback`;
+      const oauthUrl = `https://www.instagram.com/oauth/authorize?enable_fb_login=0&force_authentication=1&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=instagram_business_basic,instagram_business_manage_messages,instagram_business_manage_comments&state=${encodeURIComponent(token)}`;
+      window.location.href = oauthUrl;
+    }
+
+    // Launch Meta Facebook Business OAuth with the logged-in user's token in state
     function startMetaOauth() {
       const token = localStorage.getItem('EngageFlow_token') || '';
       const clientId = '3050678375263805';

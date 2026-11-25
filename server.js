@@ -271,6 +271,29 @@ async function resolveConnectedInstagram(userToken, clientId, clientSecret) {
     return null;
   }
 
+  // Method 0: Check if token is directly an Instagram User Access Token (from Instagram Login)
+  console.log('[Instagram Resolver] 🔍 Method 0: Checking direct Instagram Graph API node (/me)...');
+  try {
+    const directIgUrl = `https://graph.instagram.com/v21.0/me?fields=id,username,name,account_type,profile_picture_url,followers_count,media_count&access_token=${userToken}`;
+    const directIgRes = await httpsGet(directIgUrl);
+    if (directIgRes.body && (directIgRes.body.username || directIgRes.body.id)) {
+      connectedIg = directIgRes.body;
+      connectedIg.isInstagramApiDirect = true;
+      console.log('[Instagram Resolver] ✅ Found direct Instagram account via graph.instagram.com:', connectedIg.username);
+      return { connectedIg, pageToken: userToken };
+    }
+  } catch (e) {}
+
+  try {
+    const directFbIgUrl = `https://graph.facebook.com/v21.0/me?fields=id,username,name,profile_picture_url,followers_count,media_count&access_token=${userToken}`;
+    const directFbIgRes = await httpsGet(directFbIgUrl);
+    if (directFbIgRes.body && directFbIgRes.body.username) {
+      connectedIg = directFbIgRes.body;
+      console.log('[Instagram Resolver] ✅ Found direct Instagram account via graph.facebook.com/me:', connectedIg.username);
+      return { connectedIg, pageToken: userToken };
+    }
+  } catch (e) {}
+
   console.log('[Instagram Resolver] 🔍 Method 1: Querying /me/accounts (Facebook Pages)...');
   try {
     const pagesUrl = `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,access_token,instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count},connected_instagram_account{id,username,name,profile_picture_url,followers_count,media_count}&access_token=${userToken}`;
@@ -671,13 +694,29 @@ const server = http.createServer(async (req, res) => {
     // If clientSecret is available, exchange code for User Access Token
     if (clientSecret) {
       try {
+        let userToken = null;
         const tokenExchangeUrl = `https://graph.facebook.com/v21.0/oauth/access_token?client_id=${clientId}&client_secret=${clientSecret}&redirect_uri=${encodeURIComponent(redirectUri)}&code=${code}`;
         const tokenRes = await httpsGet(tokenExchangeUrl);
 
         if (tokenRes.body && tokenRes.body.access_token) {
-          const userToken = tokenRes.body.access_token;
+          userToken = tokenRes.body.access_token;
           console.log('[OAuth] Successfully exchanged code for User Access Token!');
+        } else {
+          // Fallback to direct Instagram endpoint
+          try {
+            console.log('[OAuth] Attempting direct Instagram token exchange via api.instagram.com...');
+            const igForm = `client_id=${clientId}&client_secret=${clientSecret}&grant_type=authorization_code&redirect_uri=${encodeURIComponent(redirectUri)}&code=${encodeURIComponent(code)}`;
+            const igRes = await httpsPost('https://api.instagram.com/oauth/access_token', igForm, { 'Content-Type': 'application/x-www-form-urlencoded' });
+            if (igRes.body && igRes.body.access_token) {
+              userToken = igRes.body.access_token;
+              console.log('[OAuth] Successfully exchanged code via direct Instagram API!');
+            }
+          } catch (ie) {
+            console.warn('[OAuth] Direct Instagram exchange warning:', ie.message);
+          }
+        }
 
+        if (userToken) {
           // Resolve connected Instagram using multi-method resolver
           const { connectedIg, pageToken } = await resolveConnectedInstagram(userToken, clientId, clientSecret);
 

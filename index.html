@@ -226,6 +226,33 @@
       </div>
     </div>
 
+    <!-- CONNECTED INSTAGRAM BANNER (When account is live) -->
+    <div id="connectedBanner" class="hidden glass-panel rounded-2xl p-5 border border-emerald-500/30 bg-emerald-950/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <img id="connectedBannerPic" src="" class="w-12 h-12 rounded-2xl object-cover border-2 border-emerald-500 shadow-lg shadow-emerald-500/20" alt="Avatar">
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="text-base font-bold text-white font-mono" id="connectedBannerUsername">@username</h3>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>LIVE AUTOMATION ACTIVE</span>
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5" id="connectedBannerFollowers">Ready to auto-reply to comments & send instant DMs.</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="syncInstagramReels()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 border border-white/10 transition">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-cyan-400"></i>
+          <span>Sync Reels</span>
+        </button>
+        <button onclick="revokeInstagramAccount()" class="px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition">
+          <i data-lucide="power" class="w-3.5 h-3.5 text-rose-400"></i>
+          <span>Revoke Account</span>
+        </button>
+      </div>
+    </div>
+
     <!-- ======================================================================= -->
     <!-- TAB 1: EXECUTIVE DASHBOARD (Real Data Only) -->
     <!-- ======================================================================= -->
@@ -1149,6 +1176,7 @@
 
     function updateInstagramUI() {
       const banner = document.getElementById('unconnectedBanner');
+      const connBanner = document.getElementById('connectedBanner');
       const badge = document.getElementById('headerAccountBadge');
       const statStatus = document.getElementById('statIgStatus');
       const statFollowers = document.getElementById('statIgFollowers');
@@ -1156,11 +1184,23 @@
 
       if (state.instagram.connected) {
         if (banner) banner.classList.add('hidden');
+        if (connBanner) {
+          connBanner.classList.remove('hidden');
+          const pic = document.getElementById('connectedBannerPic');
+          if (pic) pic.src = state.instagram.profilePic || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
+          const userElem = document.getElementById('connectedBannerUsername');
+          if (userElem) userElem.innerText = state.instagram.username;
+          const folElem = document.getElementById('connectedBannerFollowers');
+          if (folElem) folElem.innerText = `${(state.instagram.followersCount || 0).toLocaleString()} Followers • Auto-DMs Running`;
+        }
         badge.innerHTML = `
           <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800 border border-white/10 text-xs">
-            <img src="${state.instagram.profilePic}" class="w-5 h-5 rounded-full object-cover border border-violet-500" alt="Avatar">
+            <img src="${state.instagram.profilePic}" class="w-5 h-5 rounded-full object-cover border border-emerald-500" alt="Avatar">
             <span class="font-bold text-white">${state.instagram.username}</span>
-            <span class="text-[9px] text-emerald-400 font-bold">CONNECTED</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">CONNECTED</span>
+            <button onclick="revokeInstagramAccount()" title="Revoke Instagram Account & Pause All DMs" class="ml-1 text-slate-400 hover:text-rose-400 p-0.5 rounded hover:bg-rose-500/20 transition">
+              <i data-lucide="power" class="w-3.5 h-3.5 text-rose-400"></i>
+            </button>
           </div>
         `;
         statStatus.innerHTML = `
@@ -1171,6 +1211,7 @@
         if (simUsername) simUsername.innerText = state.instagram.username;
       } else {
         if (banner) banner.classList.remove('hidden');
+        if (connBanner) connBanner.classList.add('hidden');
         badge.innerHTML = `
           <button onclick="openConnectModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-violet-600/20 hover:bg-violet-600/30 border border-violet-500/40 text-violet-300 text-xs font-semibold transition">
             <i data-lucide="link-2" class="w-3.5 h-3.5"></i>
@@ -1184,6 +1225,29 @@
         statFollowers.innerText = "Meta Graph API";
       }
       refreshIcons();
+    }
+
+    async function revokeInstagramAccount() {
+      if (!confirm('Are you sure you want to revoke/disconnect this Instagram account? All active auto-DM rules will be PAUSED immediately.')) {
+        return;
+      }
+      try {
+        const res = await apiFetch('/api/instagram/revoke', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          state.instagram = { connected: false };
+          if (Array.isArray(state.rules)) {
+            state.rules.forEach(r => r.status = 'paused');
+          }
+          updateInstagramUI();
+          renderRules();
+          showToast('Instagram account revoked. All auto-DM rules paused.', 'error');
+        } else {
+          showToast(data.error || 'Failed to revoke account', 'error');
+        }
+      } catch (e) {
+        showToast('Network error while revoking account', 'error');
+      }
     }
 
     // CONNECT INSTAGRAM MODAL

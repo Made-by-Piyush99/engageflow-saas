@@ -1233,18 +1233,58 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (pathname === '/api/instagram/disconnect' && method === 'POST') {
+  // ---------------------------------------------------------------------------
+  // 2.7. REVOKE / DISCONNECT INSTAGRAM ACCOUNT & PAUSE ALL AUTO-DMS
+  // ---------------------------------------------------------------------------
+  if ((pathname === '/api/instagram/disconnect' || pathname === '/api/instagram/revoke') && method === 'POST') {
     const db = readDatabase();
     const user = getUserFromReq(req, db);
+
+    const revokedUsername = user?.instagram?.username || db.instagram?.username || 'account';
+
     if (user && user.instagram) {
       user.instagram.connected = false;
       user.instagram.accessToken = '';
       user.instagram.username = '';
+      user.instagram.followersCount = 0;
+      user.instagram.mediaCount = 0;
+
+      // PAUSE ALL AUTOMATION RULES FOR THIS USER IMMEDIATELY
+      let pausedCount = 0;
+      if (Array.isArray(user.rules)) {
+        user.rules.forEach(r => {
+          if (r.status === 'active') pausedCount++;
+          r.status = 'paused';
+        });
+      }
+
+      // Add to user activity logs
+      if (!Array.isArray(user.activityLogs)) user.activityLogs = [];
+      user.activityLogs.unshift({
+        id: `act_${Date.now()}`,
+        type: 'account_revoked',
+        text: `Instagram account ${revokedUsername} revoked. ${pausedCount} active auto-DM rules have been paused.`,
+        timestamp: new Date().toISOString()
+      });
     }
+
+    // Also update global fallback
     db.instagram.connected = false;
     db.instagram.accessToken = '';
+    db.instagram.username = '';
+    if (Array.isArray(db.rules)) {
+      db.rules.forEach(r => {
+        r.status = 'paused';
+      });
+    }
+
     writeDatabase(db);
-    sendJson(res, 200, { success: true, message: 'Instagram account disconnected.' });
+    console.log(`[Instagram] 🛑 Account ${revokedUsername} revoked. All active auto-DM rules paused!`);
+    sendJson(res, 200, {
+      success: true,
+      message: `Instagram account ${revokedUsername} disconnected. All automation rules and auto-DMs are now paused.`,
+      pausedRulesCount: user?.rules?.length || 0
+    });
     return;
   }
 

@@ -215,17 +215,13 @@
         </div>
       </div>
       <div class="flex flex-wrap items-center gap-3">
-        <button onclick="startInstagramDirectOauth()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 hover:opacity-95 text-white text-xs font-bold shadow-lg shadow-rose-600/30 flex items-center gap-2 transition transform active:scale-95">
+        <button onclick="startMetaOauth()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white text-xs font-bold shadow-lg shadow-blue-600/30 flex items-center gap-2 transition transform active:scale-95">
           <i data-lucide="instagram" class="w-4 h-4 text-white"></i>
-          <span>Direct Instagram Login (1-Click)</span>
-        </button>
-        <button onclick="startMetaOauth()" class="px-4 py-2.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 text-xs font-semibold flex items-center gap-1.5 transition">
-          <i data-lucide="facebook" class="w-4 h-4"></i>
-          <span>Facebook Page Connect</span>
+          <span>1-Click Connect with Instagram</span>
         </button>
         <button onclick="openConnectModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-white/10 text-xs font-semibold flex items-center gap-1.5 transition">
           <i data-lucide="key" class="w-4 h-4 text-cyan-400"></i>
-          <span>Manual Keys</span>
+          <span>Manual Keys Entry</span>
         </button>
       </div>
     </div>
@@ -571,11 +567,13 @@
       <div id="noticeModalHelpBox" class="hidden p-4 bg-slate-900/90 rounded-xl border border-white/10 space-y-2 text-xs text-slate-300">
         <div class="font-bold text-cyan-400 flex items-center gap-1.5">
           <i data-lucide="help-circle" class="w-4 h-4"></i>
-          <span>How to Fix (1 Minute):</span>
+          <span>How to Fix (Sirf 30 Seconds):</span>
         </div>
         <ol class="list-decimal list-inside space-y-1.5 text-[11px] text-slate-400 leading-relaxed">
-          <li>Instagram App kholiye ➔ <strong>Settings</strong> ➔ <strong>Account Type</strong> ➔ <em>Switch to Professional/Creator</em>.</li>
-          <li>Apna Facebook Page kholiye (ya naya banayein) ➔ <strong>Settings</strong> ➔ <strong>Linked Accounts</strong> ➔ <strong>Instagram</strong> connect karein.</li>
+          <li>Mobile me <strong>Instagram App</strong> kholiye (Account: @beauty_of_nature_view7).</li>
+          <li>Apni Profile par jakar <strong>Edit Profile (प्रोफाइल संपादित करा)</strong> tap karein.</li>
+          <li>Neeche <strong>Page (पेज)</strong> par tap karke <strong>"Create Facebook Page"</strong> select karke Done kar dein.</li>
+          <li>Yahan wapas aakar <strong>"Try Again"</strong> dabayein — turant connected ho jayega!</li>
         </ol>
       </div>
 
@@ -583,9 +581,9 @@
         <button onclick="closeNoticeModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition">
           Dismiss
         </button>
-        <button onclick="closeNoticeModal(); startInstagramDirectOauth();" id="noticeModalActionBtn" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 hover:opacity-95 text-white text-xs font-bold shadow-lg shadow-rose-600/30 transition flex items-center justify-center gap-1.5">
-          <i data-lucide="instagram" class="w-3.5 h-3.5"></i>
-          <span>Try Direct Instagram Login</span>
+        <button onclick="closeNoticeModal(); startMetaOauth();" id="noticeModalActionBtn" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-1.5">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          <span>Try Again</span>
         </button>
       </div>
 
@@ -611,15 +609,11 @@
           <i data-lucide="zap" class="w-4 h-4 text-cyan-400"></i>
           <span>Recommended 1-Click Connect</span>
         </div>
-        <p class="text-[11px] text-slate-300">Choose your preferred login method:</p>
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-2 pt-1">
-          <button onclick="startInstagramDirectOauth()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 hover:opacity-95 text-white font-bold text-xs shadow-lg shadow-rose-600/30 transition transform active:scale-95">
+        <p class="text-[11px] text-slate-300">Connect in 1 click using your Meta account:</p>
+        <div class="pt-1">
+          <button onclick="startMetaOauth()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-blue-600/30 transition transform active:scale-95">
             <i data-lucide="instagram" class="w-4 h-4"></i>
-            <span>Direct Instagram Login</span>
-          </button>
-          <button onclick="startMetaOauth()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600/30 hover:bg-blue-600/40 text-blue-300 border border-blue-500/30 text-xs font-semibold transition">
-            <i data-lucide="facebook" class="w-4 h-4"></i>
-            <span>Facebook Page Login</span>
+            <span>1-Click Connect with Instagram</span>
           </button>
         </div>
       </div>

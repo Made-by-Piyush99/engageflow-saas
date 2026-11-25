@@ -753,13 +753,13 @@
       window.location.href = oauthUrl;
     }
 
-    // Launch Meta Facebook Business OAuth with the logged-in user's token in state
+    // Launch Meta OAuth with explicit scopes for Instagram + Facebook Page
     function startMetaOauth() {
       const token = localStorage.getItem('EngageFlow_token') || '';
       const clientId = '3050678375263805';
-      const configId = '3733380756838613';
       const redirectUri = `${window.location.origin}/api/auth/facebook/callback`;
-      const oauthUrl = `https://www.facebook.com/dialog/oauth?client_id=${clientId}&config_id=${configId}&display=popup&override_default_response_type=true&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${encodeURIComponent(token)}`;
+      const scopes = 'instagram_basic,instagram_manage_comments,instagram_manage_messages,pages_show_list,pages_read_engagement';
+      const oauthUrl = `https://www.facebook.com/dialog/oauth?client_id=${clientId}&display=popup&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&state=${encodeURIComponent(token)}&auth_type=rerequest`;
       window.location.href = oauthUrl;
     }
 

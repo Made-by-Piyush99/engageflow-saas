@@ -298,6 +298,7 @@ async function resolveConnectedInstagram(userToken, clientId, clientSecret) {
   try {
     const pagesUrl = `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,access_token,instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count},connected_instagram_account{id,username,name,profile_picture_url,followers_count,media_count}&access_token=${userToken}`;
     const pagesRes = await httpsGet(pagesUrl);
+    console.log('[Instagram Resolver] 📋 /me/accounts Raw:', JSON.stringify(pagesRes.body));
     const accounts = pagesRes.body?.data || [];
     console.log('[Instagram Resolver] /me/accounts raw count:', accounts.length);
 
@@ -322,6 +323,22 @@ async function resolveConnectedInstagram(userToken, clientId, clientSecret) {
         }
       }
     }
+
+    // Fallback: check assigned_pages
+    if (accounts.length === 0) {
+      try {
+        const assignedPagesUrl = `https://graph.facebook.com/v21.0/me/assigned_pages?fields=id,name,access_token,instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count}&access_token=${userToken}`;
+        const assignedRes = await httpsGet(assignedPagesUrl);
+        const assignedList = assignedRes.body?.data || [];
+        console.log('[Instagram Resolver] /me/assigned_pages raw count:', assignedList.length);
+        for (const ap of assignedList) {
+          if (ap.instagram_business_account) {
+            console.log('[Instagram Resolver] ✅ Found Instagram account via assigned_pages:', ap.instagram_business_account.username);
+            return { connectedIg: ap.instagram_business_account, pageToken: ap.access_token || userToken };
+          }
+        }
+      } catch (ae) {}
+    }
   } catch (e) {
     console.error('[Instagram Resolver] Method 1 error:', e.message);
   }
@@ -330,6 +347,7 @@ async function resolveConnectedInstagram(userToken, clientId, clientSecret) {
   try {
     const debugUrl = `https://graph.facebook.com/v21.0/debug_token?input_token=${userToken}&access_token=${clientId}|${clientSecret}`;
     const debugRes = await httpsGet(debugUrl);
+    console.log('[Instagram Resolver] 📋 Debug Token Raw:', JSON.stringify(debugRes.body));
     const granularScopes = debugRes.body?.data?.granular_scopes || [];
     console.log('[Instagram Resolver] Granular scopes found:', granularScopes.length);
 

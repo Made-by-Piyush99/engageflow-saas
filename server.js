@@ -188,6 +188,239 @@ function httpsPost(requestUrl, payload) {
 }
 
 // =============================================================================
+// Custom Branded Error Page (404, 500, etc.)
+// =============================================================================
+function renderCustomErrorPage(res, statusCode, title, message) {
+  res.writeHead(statusCode, { 'Content-Type': 'text/html; charset=utf-8' });
+  res.end(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${statusCode} — ${title} | EngageFlow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #030712; }
+    .glass-panel { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 text-white relative overflow-hidden">
+  <div class="absolute -top-40 -left-40 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl pointer-events-none"></div>
+  <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-cyan-600/20 rounded-full blur-3xl pointer-events-none"></div>
+
+  <div class="glass-panel max-w-md w-full rounded-3xl p-8 sm:p-10 text-center space-y-6 shadow-2xl relative z-10 border border-violet-500/30">
+    <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-violet-600/20 to-cyan-500/20 border border-violet-500/30 flex items-center justify-center text-violet-400">
+      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+    </div>
+
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/30 text-violet-400 text-xs font-mono font-bold">
+      STATUS ${statusCode}
+    </div>
+    
+    <div class="space-y-2">
+      <h1 class="text-2xl font-extrabold text-white tracking-tight">${title}</h1>
+      <p class="text-xs text-slate-400 leading-relaxed">${message}</p>
+    </div>
+
+    <div class="pt-2">
+      <a href="/" class="inline-flex items-center justify-center gap-2 w-full py-3 px-5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-violet-600/30 transition transform active:scale-95">
+        <span>Back to EngageFlow Dashboard</span>
+        <span>→</span>
+      </a>
+    </div>
+  </div>
+</body>
+</html>`);
+}
+
+// =============================================================================
+// Multi-Method Meta & Instagram Account Resolver
+// =============================================================================
+// Comprehensive Multi-Method Real Instagram Account Resolver
+// Checks Pages, Debug Token Granular Scopes, Business Portfolios & Direct Nodes
+// =============================================================================
+async function resolveConnectedInstagram(userToken, clientId, clientSecret) {
+  let connectedIg = null;
+  let pageToken = userToken;
+
+  // Helper to test if an ID or object is an Instagram Business Account
+  async function testIgCandidate(igId, token) {
+    if (!igId) return null;
+    try {
+      const testUrl = `https://graph.facebook.com/v21.0/${igId}?fields=id,username,name,profile_picture_url,followers_count,media_count&access_token=${token}`;
+      const res = await httpsGet(testUrl);
+      if (res.body && (res.body.username || res.body.name)) {
+        return res.body;
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  // Helper to extract IG from a Page ID
+  async function testPageCandidate(pageId, token) {
+    if (!pageId) return null;
+    try {
+      const pageUrl = `https://graph.facebook.com/v21.0/${pageId}?fields=id,name,access_token,connected_instagram_account{id,username,name,profile_picture_url,followers_count,media_count},instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count}&access_token=${token}`;
+      const res = await httpsGet(pageUrl);
+      const ig = res.body?.instagram_business_account || res.body?.connected_instagram_account;
+      if (ig && (ig.username || ig.id)) {
+        return { ig, token: res.body?.access_token || token };
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  console.log('[Instagram Resolver] 🔍 Method 1: Querying /me/accounts (Facebook Pages)...');
+  try {
+    const pagesUrl = `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,access_token,instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count},connected_instagram_account{id,username,name,profile_picture_url,followers_count,media_count}&access_token=${userToken}`;
+    const pagesRes = await httpsGet(pagesUrl);
+    const accounts = pagesRes.body?.data || [];
+    console.log('[Instagram Resolver] /me/accounts raw count:', accounts.length);
+
+    for (const acc of accounts) {
+      if (acc.instagram_business_account) {
+        connectedIg = acc.instagram_business_account;
+        pageToken = acc.access_token || userToken;
+        console.log('[Instagram Resolver] ✅ Found Instagram account via Page (Method 1):', connectedIg.username);
+        return { connectedIg, pageToken };
+      }
+      if (acc.connected_instagram_account) {
+        connectedIg = acc.connected_instagram_account;
+        pageToken = acc.access_token || userToken;
+        console.log('[Instagram Resolver] ✅ Found Instagram account via connected_instagram_account (Method 1):', connectedIg.username);
+        return { connectedIg, pageToken };
+      }
+      if (acc.id) {
+        const pageRes = await testPageCandidate(acc.id, acc.access_token || userToken);
+        if (pageRes && pageRes.ig) {
+          console.log('[Instagram Resolver] ✅ Found Instagram account via testPageCandidate (Method 1):', pageRes.ig.username);
+          return { connectedIg: pageRes.ig, pageToken: pageRes.token };
+        }
+      }
+    }
+  } catch (e) {
+    console.error('[Instagram Resolver] Method 1 error:', e.message);
+  }
+
+  console.log('[Instagram Resolver] 🔍 Method 2: Querying Meta Debug Token (Granular Scopes & Target IDs)...');
+  try {
+    const debugUrl = `https://graph.facebook.com/v21.0/debug_token?input_token=${userToken}&access_token=${clientId}|${clientSecret}`;
+    const debugRes = await httpsGet(debugUrl);
+    const granularScopes = debugRes.body?.data?.granular_scopes || [];
+    console.log('[Instagram Resolver] Granular scopes found:', granularScopes.length);
+
+    // Collect all unique target IDs, prioritizing instagram-specific scopes
+    const candidateIds = [];
+    for (const gs of granularScopes) {
+      if (Array.isArray(gs.target_ids)) {
+        for (const tid of gs.target_ids) {
+          if (!candidateIds.includes(tid)) {
+            if (gs.scope && gs.scope.toLowerCase().includes('instagram')) {
+              candidateIds.unshift(tid); // High priority
+            } else {
+              candidateIds.push(tid);
+            }
+          }
+        }
+      }
+    }
+    console.log('[Instagram Resolver] Candidate target IDs from granular scopes:', candidateIds);
+
+    for (const tid of candidateIds) {
+      // First try as direct Instagram user node
+      const directIg = await testIgCandidate(tid, userToken);
+      if (directIg && (directIg.username || directIg.id)) {
+        console.log('[Instagram Resolver] ✅ Resolved direct Instagram account from target ID:', directIg.username || directIg.id);
+        return { connectedIg: directIg, pageToken: userToken };
+      }
+
+      // If not direct IG, try as a Page ID that may own an Instagram account
+      const pageResult = await testPageCandidate(tid, userToken);
+      if (pageResult && pageResult.ig) {
+        console.log('[Instagram Resolver] ✅ Resolved Instagram account via target Page ID:', pageResult.ig.username);
+        return { connectedIg: pageResult.ig, pageToken: pageResult.token };
+      }
+    }
+  } catch (e) {
+    console.error('[Instagram Resolver] Method 2 error:', e.message);
+  }
+
+  console.log('[Instagram Resolver] 🔍 Method 3: Querying /me/businesses (Business Portfolios)...');
+  try {
+    const bizUrl = `https://graph.facebook.com/v21.0/me/businesses?fields=id,name&access_token=${userToken}`;
+    const bizRes = await httpsGet(bizUrl);
+    const businesses = bizRes.body?.data || [];
+    console.log('[Instagram Resolver] Businesses count:', businesses.length);
+
+    for (const b of businesses) {
+      console.log(`[Instagram Resolver] Inspecting business portfolio: ${b.name} (${b.id})`);
+      
+      // Try instagram_business_accounts edge
+      try {
+        const edgeUrl = `https://graph.facebook.com/v21.0/${b.id}/instagram_business_accounts?fields=id,username,name,profile_picture_url,followers_count,media_count&access_token=${userToken}`;
+        const edgeRes = await httpsGet(edgeUrl);
+        const igList = edgeRes.body?.data || [];
+        if (igList.length > 0 && igList[0].username) {
+          console.log('[Instagram Resolver] ✅ Found Instagram account via Business instagram_business_accounts edge:', igList[0].username);
+          return { connectedIg: igList[0], pageToken: userToken };
+        }
+      } catch (be) {}
+
+      // Try client_instagram_accounts edge
+      try {
+        const clientEdgeUrl = `https://graph.facebook.com/v21.0/${b.id}/client_instagram_accounts?fields=id,username,name,profile_picture_url,followers_count,media_count&access_token=${userToken}`;
+        const clientEdgeRes = await httpsGet(clientEdgeUrl);
+        const igList = clientEdgeRes.body?.data || [];
+        if (igList.length > 0 && igList[0].username) {
+          console.log('[Instagram Resolver] ✅ Found Instagram account via Business client_instagram_accounts edge:', igList[0].username);
+          return { connectedIg: igList[0], pageToken: userToken };
+        }
+      } catch (be) {}
+
+      // Try owned_instagram_accounts edge
+      try {
+        const ownedEdgeUrl = `https://graph.facebook.com/v21.0/${b.id}/owned_instagram_accounts?fields=id,username,name,profile_picture_url,followers_count,media_count&access_token=${userToken}`;
+        const ownedEdgeRes = await httpsGet(ownedEdgeUrl);
+        const igList = ownedEdgeRes.body?.data || [];
+        if (igList.length > 0 && igList[0].username) {
+          console.log('[Instagram Resolver] ✅ Found Instagram account via Business owned_instagram_accounts edge:', igList[0].username);
+          return { connectedIg: igList[0], pageToken: userToken };
+        }
+      } catch (be) {}
+
+      // Try pages under business
+      try {
+        const bizPagesUrl = `https://graph.facebook.com/v21.0/${b.id}/pages?fields=id,name,access_token,instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count}&access_token=${userToken}`;
+        const bizPagesRes = await httpsGet(bizPagesUrl);
+        const bPages = bizPagesRes.body?.data || [];
+        for (const bp of bPages) {
+          if (bp.instagram_business_account) {
+            console.log('[Instagram Resolver] ✅ Found Instagram account via Business Page:', bp.instagram_business_account.username);
+            return { connectedIg: bp.instagram_business_account, pageToken: bp.access_token || userToken };
+          }
+        }
+      } catch (be) {}
+    }
+  } catch (e) {
+    console.error('[Instagram Resolver] Method 3 error:', e.message);
+  }
+
+  console.log('[Instagram Resolver] 🔍 Method 4: Querying /me direct node...');
+  try {
+    const directUrl = `https://graph.facebook.com/v21.0/me?fields=id,name,instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count}&access_token=${userToken}`;
+    const directRes = await httpsGet(directUrl);
+    if (directRes.body?.instagram_business_account) {
+      console.log('[Instagram Resolver] ✅ Found Instagram account via direct /me:', directRes.body.instagram_business_account.username);
+      return { connectedIg: directRes.body.instagram_business_account, pageToken: userToken };
+    }
+  } catch (e) {}
+
+  console.warn('[Instagram Resolver] ⚠️ Could not resolve connected Instagram account across any method.');
+  return { connectedIg: null, pageToken: userToken };
+}
+
+// =============================================================================
 // Multi-Tenant User Context Resolver
 // Guarantees each user (1 to 25+ users) has their own separate Instagram, Rules, Reels, Leads
 // =============================================================================
@@ -235,6 +468,13 @@ function getUserFromReq(req, db) {
     if (!fallbackUser.metrics) fallbackUser.metrics = db.metrics || { totalDMsSent: 0 };
   }
   return fallbackUser;
+}
+
+function getRedirectUri(req) {
+  if (process.env.META_REDIRECT_URI) return process.env.META_REDIRECT_URI;
+  const host = req.headers['x-forwarded-host'] || req.headers['host'] || 'literature-frankfurt-afford-constitute.trycloudflare.com';
+  const proto = req.headers['x-forwarded-proto'] || (req.socket.encrypted ? 'https' : 'https');
+  return `${proto}://${host}/api/auth/facebook/callback`;
 }
 
 // =============================================================================
@@ -424,7 +664,7 @@ const server = http.createServer(async (req, res) => {
     const db = readDatabase();
     const clientId = process.env.META_APP_ID || db.instagram.appId || '3050678375263805';
     const clientSecret = process.env.META_APP_SECRET || db.instagram.appSecret;
-    const redirectUri = 'https://decreased-sciences-participated-drums.trycloudflare.com/api/auth/facebook/callback';
+    const redirectUri = getRedirectUri(req);
 
     console.log('[OAuth] Received authorization code from Meta! Code:', code.slice(0, 15) + '...');
 
@@ -438,21 +678,8 @@ const server = http.createServer(async (req, res) => {
           const userToken = tokenRes.body.access_token;
           console.log('[OAuth] Successfully exchanged code for User Access Token!');
 
-          // Fetch user's managed Facebook Pages and connected Instagram Business Account
-          const pagesUrl = `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,access_token,instagram_business_account{id,username,name,profile_picture_url,followers_count,media_count}&access_token=${userToken}`;
-          const pagesRes = await httpsGet(pagesUrl);
-
-          const accounts = pagesRes.body?.data || [];
-          let connectedIg = null;
-          let pageToken = '';
-
-          for (const acc of accounts) {
-            if (acc.instagram_business_account) {
-              connectedIg = acc.instagram_business_account;
-              pageToken = acc.access_token || userToken;
-              break;
-            }
-          }
+          // Resolve connected Instagram using multi-method resolver
+          const { connectedIg, pageToken } = await resolveConnectedInstagram(userToken, clientId, clientSecret);
 
           if (connectedIg) {
             db.instagram.connected = true;
@@ -492,8 +719,23 @@ const server = http.createServer(async (req, res) => {
               console.log('[Meta] Subscribed apps webhook handshake completed successfully!');
             } catch (e) {}
 
-            // Auto-create or ensure session user
-            let sessionUser = db.users[0];
+            // Check state query param to link to the logged-in user
+            const stateToken = parsedUrl.query.state;
+            let sessionUser = null;
+            if (stateToken) {
+              const session = db.sessions.find(s => s.token === stateToken);
+              if (session) {
+                sessionUser = db.users.find(u => u.id === session.userId);
+                if (sessionUser) {
+                  console.log(`[OAuth] Linking Instagram to logged-in user: ${sessionUser.name} (${sessionUser.email})`);
+                }
+              }
+            }
+
+            // Fallback or auto-create if no session found
+            if (!sessionUser) {
+              sessionUser = db.users[0];
+            }
             if (!sessionUser) {
               sessionUser = {
                 id: `usr_${Date.now()}`,
@@ -505,23 +747,46 @@ const server = http.createServer(async (req, res) => {
               };
               db.users.push(sessionUser);
             }
-            const sessionToken = generateToken();
-            db.sessions.push({
-              token: sessionToken,
-              userId: sessionUser.id,
-              email: sessionUser.email,
-              createdAt: new Date().toISOString(),
-              expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-            });
+
+            // Guarantee isolated user containers for multi-tenancy (20-25 users)
+            sessionUser.instagram = {
+              connected: true,
+              accountId: connectedIg.id,
+              username: `@${connectedIg.username}`,
+              name: connectedIg.name || connectedIg.username,
+              profilePic: connectedIg.profile_picture_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+              followersCount: connectedIg.followers_count || 0,
+              mediaCount: connectedIg.media_count || 0,
+              accessToken: pageToken,
+              appId: clientId
+            };
+            sessionUser.reels = db.reels || [];
+            if (!Array.isArray(sessionUser.rules)) sessionUser.rules = [];
+            if (!Array.isArray(sessionUser.leads)) sessionUser.leads = [];
+            if (!Array.isArray(sessionUser.processedCommentIds)) sessionUser.processedCommentIds = [];
+
+            // Generate or reuse session token
+            let activeToken = stateToken;
+            const existingSession = db.sessions.find(s => s.token === activeToken);
+            if (!existingSession) {
+              activeToken = generateToken();
+              db.sessions.push({
+                token: activeToken,
+                userId: sessionUser.id,
+                email: sessionUser.email,
+                createdAt: new Date().toISOString(),
+                expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+              });
+            }
 
             writeDatabase(db);
 
-            console.log(`[OAuth] Successfully connected Instagram account: @${connectedIg.username}`);
-            res.writeHead(302, { Location: `/?oauth_success=true&username=${encodeURIComponent(connectedIg.username)}&session_token=${sessionToken}` });
+            console.log(`[OAuth] Successfully connected Instagram account: @${connectedIg.username} for user ${sessionUser.email}`);
+            res.writeHead(302, { Location: `/?oauth_success=true&username=${encodeURIComponent(connectedIg.username)}&session_token=${activeToken}` });
             res.end();
             return;
           } else {
-            res.writeHead(302, { Location: `/?error=${encodeURIComponent('No Instagram Professional/Business account found linked to your Facebook Page. Please ensure your Instagram is connected to your Facebook Page.')}` });
+            res.writeHead(302, { Location: `/?error=${encodeURIComponent('No Instagram Professional/Business account found linked to your Facebook Page. Please ensure your Instagram is connected to your Facebook Page.')}&error_code=NO_INSTAGRAM_LINKED` });
             res.end();
             return;
           }
@@ -566,7 +831,7 @@ const server = http.createServer(async (req, res) => {
 
     if (global.latestPendingAuthCode) {
       const clientId = '3050678375263805';
-      const redirectUri = 'https://decreased-sciences-participated-drums.trycloudflare.com/api/auth/facebook/callback';
+      const redirectUri = getRedirectUri(req);
       try {
         console.log('[OAuth Auto-Exchange] Exchanging pending authorization code with Meta...');
         const tokenExchangeUrl = `https://graph.facebook.com/v21.0/oauth/access_token?client_id=${clientId}&client_secret=${appSecret.trim()}&redirect_uri=${encodeURIComponent(redirectUri)}&code=${global.latestPendingAuthCode}`;
@@ -639,7 +904,7 @@ const server = http.createServer(async (req, res) => {
     const body = await parseBody(req);
     const { code, appSecret } = body;
     const clientId = '3050678375263805';
-    const redirectUri = 'https://decreased-sciences-participated-drums.trycloudflare.com/api/auth/facebook/callback';
+    const redirectUri = getRedirectUri(req);
 
     if (!code || !appSecret) {
       sendJson(res, 400, { success: false, error: 'Authorization code and Meta App Secret are required.' });
@@ -1212,18 +1477,23 @@ const server = http.createServer(async (req, res) => {
   }
 
   // ---------------------------------------------------------------------------
-  // 8. STATIC ASSET SERVING
+  // 8. STATIC ASSET SERVING & CUSTOM 404
   // ---------------------------------------------------------------------------
-  let filePath = path.join(__dirname, pathname === '/' ? 'index.html' : pathname);
-  if (!fs.existsSync(filePath)) {
-    filePath = path.join(__dirname, 'index.html');
+  if (pathname === '/' || pathname === '/index.html') {
+    const indexPath = path.join(__dirname, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(fs.readFileSync(indexPath));
+      return;
+    }
   }
 
-  if (fs.existsSync(filePath) && !fs.statSync(filePath).isDirectory()) {
-    const ext = path.extname(filePath).toLowerCase();
+  const requestedPath = path.join(__dirname, pathname);
+  if (fs.existsSync(requestedPath) && !fs.statSync(requestedPath).isDirectory()) {
+    const ext = path.extname(requestedPath).toLowerCase();
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
     try {
-      const data = fs.readFileSync(filePath);
+      const data = fs.readFileSync(requestedPath);
       res.writeHead(200, { 'Content-Type': contentType });
       res.end(data);
       return;
@@ -1232,8 +1502,14 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  res.writeHead(404, { 'Content-Type': 'text/plain' });
-  res.end('Not Found');
+  // If API route not found
+  if (pathname.startsWith('/api/')) {
+    sendJson(res, 404, { success: false, error: `API route ${pathname} was not found.` });
+    return;
+  }
+
+  // Render Custom Branded 404 Page
+  renderCustomErrorPage(res, 404, 'Page Not Found', `The page "${pathname}" could not be found on this server.`);
 });
 
 server.listen(PORT, () => {

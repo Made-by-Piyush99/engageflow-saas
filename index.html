@@ -550,6 +550,45 @@
   </main>
 
   <!-- ======================================================================= -->
+  <!-- MODAL: CUSTOM APP NOTICE / ERROR MODAL (No Browser Alerts) -->
+  <!-- ======================================================================= -->
+  <div id="customNoticeModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-md rounded-2xl border border-violet-500/30 shadow-2xl p-6 sm:p-8 space-y-5 animate-fadeIn">
+      
+      <div class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-tr from-amber-500/20 to-rose-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+        <i data-lucide="info" class="w-6 h-6" id="noticeModalIcon"></i>
+      </div>
+
+      <div class="text-center space-y-2">
+        <h3 class="text-base font-bold text-white" id="noticeModalTitle">Notice</h3>
+        <p class="text-xs text-slate-300 leading-relaxed" id="noticeModalMessage"></p>
+      </div>
+
+      <div id="noticeModalHelpBox" class="hidden p-4 bg-slate-900/90 rounded-xl border border-white/10 space-y-2 text-xs text-slate-300">
+        <div class="font-bold text-cyan-400 flex items-center gap-1.5">
+          <i data-lucide="help-circle" class="w-4 h-4"></i>
+          <span>How to Fix (1 Minute):</span>
+        </div>
+        <ol class="list-decimal list-inside space-y-1.5 text-[11px] text-slate-400 leading-relaxed">
+          <li>Instagram App kholiye ➔ <strong>Settings</strong> ➔ <strong>Account Type</strong> ➔ <em>Switch to Professional/Creator</em>.</li>
+          <li>Apna Facebook Page kholiye (ya naya banayein) ➔ <strong>Settings</strong> ➔ <strong>Linked Accounts</strong> ➔ <strong>Instagram</strong> connect karein.</li>
+        </ol>
+      </div>
+
+      <div class="flex items-center gap-3 pt-2">
+        <button onclick="closeNoticeModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition">
+          Dismiss
+        </button>
+        <button onclick="closeNoticeModal(); startMetaOauth();" id="noticeModalActionBtn" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-1.5">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          <span>Try Again</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
   <!-- MODAL: CONNECT INSTAGRAM ACCOUNT (Real Meta Validator) -->
   <!-- ======================================================================= -->
   <div id="connectModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
@@ -706,7 +745,7 @@
       const token = localStorage.getItem('EngageFlow_token') || '';
       const clientId = '3050678375263805';
       const configId = '3733380756838613';
-      const redirectUri = 'https://decreased-sciences-participated-drums.trycloudflare.com/api/auth/facebook/callback';
+      const redirectUri = `${window.location.origin}/api/auth/facebook/callback`;
       const oauthUrl = `https://www.facebook.com/dialog/oauth?client_id=${clientId}&config_id=${configId}&display=popup&override_default_response_type=true&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${encodeURIComponent(token)}`;
       window.location.href = oauthUrl;
     }
@@ -717,12 +756,44 @@
       }, 50);
     }
 
-    function showToast(msg) {
+    function showToast(msg, type = 'success') {
       const toast = document.getElementById('toast');
-      document.getElementById('toastMsg').innerText = msg;
+      const toastMsg = document.getElementById('toastMsg');
+      toastMsg.innerText = msg;
+      
+      const iconWrap = toast.querySelector('div');
+      if (type === 'error') {
+        toast.className = 'fixed bottom-6 right-6 z-50 glass-panel border border-rose-500/50 bg-rose-950/80 px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 text-xs text-white';
+        if (iconWrap) {
+          iconWrap.className = 'w-6 h-6 rounded-full bg-rose-600 flex items-center justify-center text-white flex-shrink-0';
+          iconWrap.innerHTML = '<i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>';
+        }
+      } else {
+        toast.className = 'fixed bottom-6 right-6 z-50 glass-panel border border-violet-500/40 bg-slate-900/90 px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 text-xs text-white';
+        if (iconWrap) {
+          iconWrap.className = 'w-6 h-6 rounded-full bg-violet-600 flex items-center justify-center text-white flex-shrink-0';
+          iconWrap.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i>';
+        }
+      }
       toast.classList.remove('hidden');
       refreshIcons();
-      setTimeout(() => toast.classList.add('hidden'), 3500);
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => toast.classList.add('hidden'), 3500);
+    }
+
+    // Custom Glassmorphic Notice Modal (Replaces browser alerts)
+    function showNoticeModal(title, msg, showHelp = false) {
+      document.getElementById('noticeModalTitle').innerText = title;
+      document.getElementById('noticeModalMessage').innerText = msg;
+      const helpBox = document.getElementById('noticeModalHelpBox');
+      if (showHelp) helpBox.classList.remove('hidden');
+      else helpBox.classList.add('hidden');
+      document.getElementById('customNoticeModal').classList.remove('hidden');
+      refreshIcons();
+    }
+
+    function closeNoticeModal() {
+      document.getElementById('customNoticeModal').classList.add('hidden');
     }
 
     function switchTab(tabId) {
@@ -781,7 +852,8 @@
         showToast(`🎉 Connected to ${urlParams.get('username') || 'Instagram'}!`);
         window.history.replaceState({}, document.title, window.location.pathname);
       } else if (urlParams.get('error')) {
-        alert('Meta Login: ' + decodeURIComponent(urlParams.get('error')));
+        const isIgMissing = urlParams.get('error_code') === 'NO_INSTAGRAM_LINKED' || urlParams.get('error').includes('No Instagram');
+        showNoticeModal('Instagram Connection Notice', decodeURIComponent(urlParams.get('error')), isIgMissing);
         window.history.replaceState({}, document.title, window.location.pathname);
       }
 
@@ -877,7 +949,7 @@
     async function handleLogin() {
       const email = document.getElementById('loginEmail').value.trim();
       const password = document.getElementById('loginPassword').value.trim();
-      if (!email || !password) return alert('Please enter both email and password');
+      if (!email || !password) return showToast('Please enter both email and password', 'error');
 
       try {
         const res = await fetch('/api/auth/login', {
@@ -894,10 +966,10 @@
           loadRealData();
           showToast(`Welcome back, ${data.user.name}!`);
         } else {
-          alert(data.error || 'Login failed');
+          showToast(data.error || 'Login failed', 'error');
         }
       } catch (err) {
-        alert('Could not connect to server');
+        showToast('Could not connect to server', 'error');
       }
     }
 
@@ -905,7 +977,7 @@
       const name = document.getElementById('regName').value.trim();
       const email = document.getElementById('regEmail').value.trim();
       const password = document.getElementById('regPassword').value.trim();
-      if (!name || !email || !password) return alert('Please fill in all fields');
+      if (!name || !email || !password) return showToast('Please fill in all fields', 'error');
 
       try {
         const res = await fetch('/api/auth/register', {
@@ -922,10 +994,10 @@
           loadRealData();
           showToast(`Account created! Welcome, ${data.user.name}`);
         } else {
-          alert(data.error || 'Registration failed');
+          showToast(data.error || 'Registration failed', 'error');
         }
       } catch (err) {
-        alert('Could not connect to server');
+        showToast('Could not connect to server', 'error');
       }
     }
 
@@ -1035,7 +1107,9 @@
     }
 
     async function syncInstagramReels() {
-      if (!state.instagram.connected) return alert('Please connect your Instagram account first.');
+      if (!state.instagram.connected) {
+        return showNoticeModal('Instagram Not Connected', 'Please connect your Instagram account first using 1-Click Connect to sync your Reels and Posts.');
+      }
       const btn = document.getElementById('btnSyncReels');
       const text = document.getElementById('btnSyncReelsText');
       btn.disabled = true;
@@ -1049,10 +1123,10 @@
           renderReels(state.reels);
           showToast(`Synced ${state.reels.length} posts & reels!`);
         } else {
-          alert(data.error || 'Failed to sync reels.');
+          showToast(data.error || 'Failed to sync reels.', 'error');
         }
       } catch (e) {
-        alert('Network error while syncing reels.');
+        showToast('Network error while syncing reels.', 'error');
       } finally {
         btn.disabled = false;
         text.innerText = 'Sync Reels Now';
@@ -1230,7 +1304,7 @@
       const btnLabel = document.getElementById('modalBtnLabel').value.trim();
       const btnUrl = document.getElementById('modalBtnUrl').value.trim();
 
-      if (!name || !triggersRaw) return alert('Rule Name and Trigger Keywords are required.');
+      if (!name || !triggersRaw) return showToast('Rule Name and Trigger Keywords are required.', 'error');
 
       const triggers = triggersRaw.split(',').map(t => t.trim().toUpperCase()).filter(Boolean);
       const buttons = btnLabel ? [{ label: btnLabel, url: btnUrl || 'https://example.com' }] : [];
@@ -1256,9 +1330,11 @@
           renderRules();
           closeRuleModal();
           showToast(`Rule "${name}" created!`);
+        } else {
+          showToast(data.error || 'Failed to save rule', 'error');
         }
       } catch (e) {
-        alert('Could not save rule');
+        showToast('Could not save rule. Please try again.', 'error');
       }
     }
 

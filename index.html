@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EngageFlow — Free Public Instagram DM Automation</title>
+  <title>EngageFlow Pro — Instagram DM & Lead Automation</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -22,6 +22,7 @@
           colors: {
             brand: {
               50: '#f5f3ff',
+              100: '#ede9fe',
               500: '#8b5cf6',
               600: '#7c3aed',
               700: '#6d28d9'
@@ -47,34 +48,54 @@
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
     .glass-card {
-      background: rgba(30, 41, 59, 0.5);
+      background: rgba(30, 41, 59, 0.45);
       backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .glass-card:hover {
+      border-color: rgba(139, 92, 246, 0.35);
+    }
+    .cta-btn-preview {
+      background: linear-gradient(135deg, rgba(124, 58, 237, 0.95), rgba(79, 70, 229, 0.95));
+      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3);
+      transition: all 0.2s ease;
+    }
+    .cta-btn-preview:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(124, 58, 237, 0.45);
     }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #070A11; }
     ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    .animate-fadeIn { animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
   </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
 
-  <!-- Ambient Glow -->
-  <div class="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] bg-violet-600/15 rounded-full blur-[140px] pointer-events-none -z-10"></div>
-  <div class="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[140px] pointer-events-none -z-10"></div>
+  <!-- Ambient Glow Effects -->
+  <div class="fixed top-[-10%] left-[-10%] w-[550px] h-[550px] bg-violet-600/15 rounded-full blur-[140px] pointer-events-none -z-10"></div>
+  <div class="fixed bottom-[-10%] right-[-10%] w-[550px] h-[550px] bg-cyan-500/10 rounded-full blur-[140px] pointer-events-none -z-10"></div>
 
   <!-- ======================================================================= -->
   <!-- PUBLIC AUTH MODAL (Login & Register) -->
   <!-- ======================================================================= -->
   <div id="authModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="glass-panel w-full max-w-md rounded-2xl border border-white/10 shadow-2xl p-6 sm:p-8 space-y-6">
+    <div class="glass-panel w-full max-w-md rounded-2xl border border-white/10 shadow-2xl p-6 sm:p-8 space-y-6 relative">
       
+      <!-- Optional Close Button (if already logged in) -->
+      <button onclick="closeAuthModal()" id="btnAuthModalClose" class="hidden absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition" title="Close">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+
       <!-- Brand Header -->
       <div class="text-center space-y-2">
         <div class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-violet-600/30">
           <i data-lucide="zap" class="w-6 h-6 text-white"></i>
         </div>
-        <h2 class="text-xl font-extrabold text-white">EngageFlow</h2>
-        <p class="text-xs text-slate-400">100% Free Public Instagram DM & Lead Automation</p>
+        <h2 class="text-xl font-extrabold text-white">EngageFlow Pro</h2>
+        <p class="text-xs text-slate-400">Enterprise Instagram Auto-DM & Conversion Platform</p>
       </div>
 
       <!-- Auth Tabs -->
@@ -118,31 +139,39 @@
       </div>
 
       <div class="text-center text-[11px] text-slate-500">
-        100% Free Forever • Connect your official Meta Instagram API
+        Free Public Edition • Official Meta Instagram Graph API v21.0
       </div>
     </div>
   </div>
 
-  <!-- Top Global Header -->
+  <!-- ======================================================================= -->
+  <!-- TOP GLOBAL HEADER -->
+  <!-- ======================================================================= -->
   <header class="glass-panel sticky top-0 z-40 border-b border-white/10 px-4 lg:px-8 py-3.5">
     <div class="max-w-7xl mx-auto flex items-center justify-between">
       
       <!-- Brand -->
       <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-violet-600/30">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-violet-600/30">
           <i data-lucide="zap" class="w-5 h-5 text-white"></i>
         </div>
         <div>
           <div class="flex items-center gap-2">
             <span class="font-extrabold text-base tracking-tight text-white">EngageFlow<span class="text-violet-400">Pro</span></span>
-            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 uppercase tracking-wider">Free Public Edition</span>
+            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 uppercase tracking-wider">Public Edition</span>
           </div>
-          <p class="text-[11px] text-slate-400">Instagram Auto-DM & Lead Generation</p>
+          <p class="text-[11px] text-slate-400">Instagram Comments to DMs & Leads Autopilot</p>
         </div>
       </div>
 
       <!-- Right Header Actions -->
       <div class="flex items-center gap-3">
+        <!-- New Automation Direct Button -->
+        <button onclick="openNewRuleModal()" class="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-violet-600/20 transition active:scale-95">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          <span>New Automation</span>
+        </button>
+
         <!-- Connected Account Badge / Connect Button -->
         <div id="headerAccountBadge">
           <button onclick="openConnectModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-violet-600/20 hover:bg-violet-600/30 border border-violet-500/40 text-violet-300 text-xs font-semibold transition">
@@ -151,14 +180,24 @@
           </button>
         </div>
 
-        <!-- User Profile & Logout -->
-        <div id="userProfileBadge" class="hidden flex items-center gap-2 pl-3 border-l border-white/10">
+        <!-- Login / Register Button (Visible when logged out) -->
+        <button id="btnHeaderLogin" onclick="openAuthModal()" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-violet-600/30 hover:bg-violet-600/50 border border-violet-500/40 text-violet-200 text-xs font-bold transition">
+          <i data-lucide="user" class="w-3.5 h-3.5"></i>
+          <span>Sign In / Register</span>
+        </button>
+
+        <!-- User Profile & Logout (Visible when logged in) -->
+        <div id="userProfileBadge" class="hidden flex items-center gap-2.5 pl-3 border-l border-white/10">
           <div class="text-right hidden sm:block">
-            <div class="text-xs font-bold text-white" id="navUserName">Creator</div>
+            <div class="text-xs font-bold text-white flex items-center gap-1.5 justify-end">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span id="navUserName">Creator</span>
+            </div>
             <div class="text-[10px] text-slate-400 font-mono" id="navUserEmail">user@example.com</div>
           </div>
-          <button onclick="handleLogout()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition" title="Log Out">
-            <i data-lucide="log-out" class="w-4 h-4"></i>
+          <button onclick="handleLogout()" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-white/10 text-xs font-semibold flex items-center gap-1.5 transition" title="Log Out of Account">
+            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+            <span class="hidden md:inline text-[11px]">Sign Out</span>
           </button>
         </div>
       </div>
@@ -166,44 +205,52 @@
     </div>
   </header>
 
-  <!-- Navigation Bar (Tabs) -->
-  <nav class="border-b border-white/5 bg-[#090D16]/90 backdrop-blur px-4 lg:px-8">
-    <div class="max-w-7xl mx-auto flex items-center gap-1 overflow-x-auto py-2">
-      <button onclick="switchTab('dashboard')" id="tabBtn-dashboard" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold text-white bg-violet-600/20 text-violet-300 border border-violet-500/30 transition">
+  <!-- ======================================================================= -->
+  <!-- NAVIGATION BAR (Tabs) -->
+  <!-- ======================================================================= -->
+  <nav class="border-b border-white/5 bg-[#090D16]/90 backdrop-blur px-4 lg:px-8 sticky top-[61px] z-30">
+    <div class="max-w-7xl mx-auto flex items-center gap-1.5 overflow-x-auto py-2">
+      <button onclick="switchTab('dashboard')" id="tabBtn-dashboard" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-violet-600/20 text-violet-300 border border-violet-500/30 transition">
         <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
         <span>Dashboard</span>
       </button>
 
-      <button onclick="switchTab('studio')" id="tabBtn-studio" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/5 transition">
+      <button onclick="switchTab('studio')" id="tabBtn-studio" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/5 transition">
         <i data-lucide="sliders" class="w-4 h-4"></i>
         <span>Automation Rules</span>
-        <span class="px-1.5 py-0.5 rounded-full bg-slate-800 text-[10px] text-slate-400 font-mono" id="ruleCountBadge">0</span>
+        <span class="px-1.5 py-0.5 rounded-full bg-slate-800 text-[10px] text-slate-300 font-mono font-bold" id="ruleCountBadge">0</span>
       </button>
 
-      <button onclick="switchTab('setup')" id="tabBtn-setup" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/5 transition">
-        <i data-lucide="key" class="w-4 h-4 text-cyan-400"></i>
-        <span>How to Get Meta API Keys</span>
+      <button onclick="switchTab('media')" id="tabBtn-media" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/5 transition">
+        <i data-lucide="film" class="w-4 h-4 text-pink-400"></i>
+        <span>Reels & Posts</span>
+        <span class="px-1.5 py-0.5 rounded-full bg-slate-800 text-[10px] text-slate-300 font-mono font-bold" id="mediaCountBadge">0</span>
       </button>
 
-      <button onclick="switchTab('simulator')" id="tabBtn-simulator" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/5 transition">
+      <button onclick="switchTab('simulator')" id="tabBtn-simulator" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/5 transition">
         <i data-lucide="smartphone" class="w-4 h-4 text-violet-400"></i>
-        <span>Interactive Phone Simulator</span>
+        <span>Phone Simulator</span>
       </button>
 
-      <button onclick="switchTab('leads')" id="tabBtn-leads" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/5 transition">
-        <i data-lucide="users" class="w-4 h-4"></i>
+      <button onclick="switchTab('leads')" id="tabBtn-leads" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/5 transition">
+        <i data-lucide="users" class="w-4 h-4 text-emerald-400"></i>
         <span>Captured Leads</span>
-        <span class="px-1.5 py-0.5 rounded-full bg-slate-800 text-[10px] text-slate-400 font-mono" id="leadsCountBadge">0</span>
+        <span class="px-1.5 py-0.5 rounded-full bg-slate-800 text-[10px] text-slate-300 font-mono font-bold" id="leadsCountBadge">0</span>
+      </button>
+
+      <button onclick="switchTab('setup')" id="tabBtn-setup" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-white/5 transition">
+        <i data-lucide="key" class="w-4 h-4 text-cyan-400"></i>
+        <span>API Keys Guide</span>
       </button>
     </div>
   </nav>
 
-  <!-- Main Content Area -->
+  <!-- ======================================================================= -->
+  <!-- MAIN CONTENT CONTAINER -->
+  <!-- ======================================================================= -->
   <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8 space-y-8">
 
-    <!-- ======================================================================= -->
-    <!-- UNCONNECTED INSTAGRAM ALERT BANNER (If not connected) -->
-    <!-- ======================================================================= -->
+    <!-- ALERT BANNER: INSTAGRAM NOT CONNECTED -->
     <div id="unconnectedBanner" class="glass-panel rounded-2xl p-6 border border-violet-500/30 flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-4">
         <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500/20 to-violet-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 flex-shrink-0">
@@ -211,11 +258,11 @@
         </div>
         <div>
           <h3 class="text-base font-bold text-white">Instagram Account Not Connected Yet</h3>
-          <p class="text-xs text-slate-400">Connect your Instagram Business or Creator account using your Meta API keys to start sending live automatic DMs.</p>
+          <p class="text-xs text-slate-400">Connect your Instagram Creator or Business account to activate automated comment responses and real-time DM delivery.</p>
         </div>
       </div>
       <div class="flex flex-wrap items-center gap-3">
-        <button onclick="startMetaOauth()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white text-xs font-bold shadow-lg shadow-blue-600/30 flex items-center gap-2 transition transform active:scale-95">
+        <button onclick="startMetaOauth()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white text-xs font-bold shadow-lg shadow-blue-600/30 flex items-center gap-2 transition active:scale-95">
           <i data-lucide="instagram" class="w-4 h-4 text-white"></i>
           <span>1-Click Connect with Instagram</span>
         </button>
@@ -226,7 +273,7 @@
       </div>
     </div>
 
-    <!-- CONNECTED INSTAGRAM BANNER (When account is live) -->
+    <!-- BANNER: INSTAGRAM ACCOUNT CONNECTED -->
     <div id="connectedBanner" class="hidden glass-panel rounded-2xl p-5 border border-emerald-500/30 bg-emerald-950/20 flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-4">
         <img id="connectedBannerPic" src="" class="w-12 h-12 rounded-2xl object-cover border-2 border-emerald-500 shadow-lg shadow-emerald-500/20" alt="Avatar">
@@ -235,7 +282,7 @@
             <h3 class="text-base font-bold text-white font-mono" id="connectedBannerUsername">@username</h3>
             <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30 flex items-center gap-1">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>LIVE AUTOMATION ACTIVE</span>
+              <span>LIVE AUTOMATION RUNNING</span>
             </span>
           </div>
           <p class="text-xs text-slate-400 mt-0.5" id="connectedBannerFollowers">Ready to auto-reply to comments & send instant DMs.</p>
@@ -244,24 +291,24 @@
       <div class="flex items-center gap-3">
         <button onclick="syncInstagramReels()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold flex items-center gap-1.5 border border-white/10 transition">
           <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-cyan-400"></i>
-          <span>Sync Reels</span>
+          <span>Sync Reels & Posts</span>
         </button>
         <button onclick="revokeInstagramAccount()" class="px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition">
           <i data-lucide="power" class="w-3.5 h-3.5 text-rose-400"></i>
-          <span>Revoke Account</span>
+          <span>Revoke</span>
         </button>
       </div>
     </div>
 
     <!-- ======================================================================= -->
-    <!-- TAB 1: EXECUTIVE DASHBOARD (Real Data Only) -->
+    <!-- TAB 1: EXECUTIVE DASHBOARD -->
     <!-- ======================================================================= -->
     <section id="view-dashboard" class="space-y-8">
       
-      <!-- Real KPI Stat Cards -->
+      <!-- Key Stat KPI Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         
-        <div class="glass-card rounded-2xl p-5 border border-white/5">
+        <div class="glass-card rounded-2xl p-5 border border-white/5 hover:border-violet-500/30 transition">
           <div class="flex items-center justify-between mb-3">
             <span class="text-xs font-semibold text-slate-400">Total Live DMs Sent</span>
             <div class="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-400">
@@ -269,32 +316,32 @@
             </div>
           </div>
           <div class="text-3xl font-extrabold text-white font-mono" id="statRealDms">0</div>
-          <p class="text-[11px] text-slate-500 mt-2">Real comments automated</p>
+          <p class="text-[11px] text-slate-500 mt-2">Delivered to follower inboxes</p>
         </div>
 
-        <div class="glass-card rounded-2xl p-5 border border-white/5">
+        <div class="glass-card rounded-2xl p-5 border border-white/5 hover:border-cyan-500/30 transition">
           <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-semibold text-slate-400">Active Automation Flows</span>
+            <span class="text-xs font-semibold text-slate-400">Active Automations</span>
             <div class="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400">
               <i data-lucide="sliders" class="w-4 h-4"></i>
             </div>
           </div>
           <div class="text-3xl font-extrabold text-white font-mono" id="statRealRules">0</div>
-          <p class="text-[11px] text-slate-500 mt-2">Listening for keywords</p>
+          <p class="text-[11px] text-slate-500 mt-2">Listening on Reels & Posts</p>
         </div>
 
-        <div class="glass-card rounded-2xl p-5 border border-white/5">
+        <div class="glass-card rounded-2xl p-5 border border-white/5 hover:border-emerald-500/30 transition">
           <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-semibold text-slate-400">Total Leads Captured</span>
+            <span class="text-xs font-semibold text-slate-400">Leads Captured</span>
             <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
               <i data-lucide="user-check" class="w-4 h-4"></i>
             </div>
           </div>
           <div class="text-3xl font-extrabold text-white font-mono" id="statRealLeads">0</div>
-          <p class="text-[11px] text-slate-500 mt-2">Users who engaged</p>
+          <p class="text-[11px] text-slate-500 mt-2">Users who received your link</p>
         </div>
 
-        <div class="glass-card rounded-2xl p-5 border border-white/5">
+        <div class="glass-card rounded-2xl p-5 border border-white/5 hover:border-amber-500/30 transition">
           <div class="flex items-center justify-between mb-3">
             <span class="text-xs font-semibold text-slate-400">Instagram Status</span>
             <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400">
@@ -305,9 +352,24 @@
             <span class="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
             <span>Not Connected</span>
           </div>
-          <p class="text-[11px] text-slate-500 mt-2" id="statIgFollowers">Meta Graph API</p>
+          <p class="text-[11px] text-slate-500 mt-2" id="statIgFollowers">Meta Graph API v21.0</p>
         </div>
 
+      </div>
+
+      <!-- Quick Action Bar -->
+      <div class="glass-panel rounded-2xl p-5 border border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <i data-lucide="sparkles" class="w-4 h-4 text-violet-400"></i>
+            <span>Create New Instagram DM Automation Flow</span>
+          </h3>
+          <p class="text-xs text-slate-400">Set up keyword triggers for All Reels, All Posts, or a Specific Post with professional CTA buttons.</p>
+        </div>
+        <button onclick="openNewRuleModal()" class="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold shadow-lg shadow-violet-600/30 flex items-center gap-2 transition active:scale-95">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>+ Create Automation Flow</span>
+        </button>
       </div>
 
       <!-- Active Rules Section -->
@@ -315,62 +377,293 @@
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-base font-bold text-white flex items-center gap-2">
-              <i data-lucide="sparkles" class="w-4 h-4 text-violet-400"></i>
-              <span>Your Automation Rules</span>
+              <i data-lucide="sliders" class="w-4 h-4 text-cyan-400"></i>
+              <span>Active Automation Rules</span>
             </h2>
-            <p class="text-xs text-slate-400">Keywords and direct message actions currently configured</p>
+            <p class="text-xs text-slate-400">Keyword rules currently monitoring your account</p>
           </div>
-          <button onclick="openNewRuleModal()" class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold flex items-center gap-1.5 transition">
-            <i data-lucide="plus" class="w-4 h-4"></i>
-            <span>Create Rule</span>
+          <button onclick="switchTab('studio')" class="text-xs text-violet-400 hover:text-violet-300 font-semibold flex items-center gap-1">
+            <span>View All Studio Rules</span>
+            <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
           </button>
         </div>
 
-        <!-- Rules List Container -->
-        <div id="dashboardRulesList" class="space-y-3">
-          <!-- Empty State (Default) -->
-          <div class="text-center py-12 border border-dashed border-white/10 rounded-2xl space-y-3">
-            <div class="w-12 h-12 mx-auto rounded-2xl bg-slate-800 flex items-center justify-center text-slate-500">
-              <i data-lucide="inbox" class="w-6 h-6"></i>
-            </div>
-            <div class="font-bold text-sm text-slate-300">No Automation Rules Created Yet</div>
-            <p class="text-xs text-slate-500 max-w-sm mx-auto">Create a keyword rule like "LINK" or "ROADMAP" so when followers comment on your Reels, an automated DM is sent instantly.</p>
-            <button onclick="openNewRuleModal()" class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition">
-              + Create First Automation Rule
-            </button>
-          </div>
+        <div id="dashboardRulesList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Rendered dynamically -->
         </div>
       </div>
 
-      <!-- Synced Reels & Posts Section -->
+      <!-- Recent Media Preview with Quick Filter -->
       <div class="glass-panel rounded-2xl p-6 border border-white/5 space-y-4">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 class="text-base font-bold text-white flex items-center gap-2">
               <i data-lucide="video" class="w-4 h-4 text-pink-400"></i>
-              <span>Synced Instagram Reels & Posts</span>
+              <span>Recent Reels & Posts</span>
             </h2>
-            <p class="text-xs text-slate-400">Posts automatically monitored by the 2-minute background scanner</p>
+            <p class="text-xs text-slate-400">Click "Create Automation" on any reel or post to attach an auto-DM rule</p>
           </div>
-          <button onclick="syncInstagramReels()" id="btnSyncReels" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 text-xs font-semibold flex items-center gap-1.5 transition">
-            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-            <span id="btnSyncReelsText">Sync Reels Now</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="switchTab('media')" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 text-xs font-semibold flex items-center gap-1.5 transition">
+              <span>View All Media</span>
+              <i data-lucide="arrow-right" class="w-3 h-3"></i>
+            </button>
+          </div>
         </div>
 
-        <div id="reelsContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          <div class="col-span-full text-center py-8 border border-dashed border-white/10 rounded-2xl space-y-2">
-            <i data-lucide="camera" class="w-6 h-6 text-slate-500 mx-auto"></i>
-            <div class="font-bold text-xs text-slate-300">No Synced Media Yet</div>
-            <p class="text-[11px] text-slate-500">Connect your Instagram account to automatically sync your latest posts and reels.</p>
-          </div>
+        <div id="dashboardMediaContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <!-- Rendered dynamically -->
         </div>
       </div>
 
     </section>
 
     <!-- ======================================================================= -->
-    <!-- TAB 2: STEP-BY-STEP SETUP GUIDE (How to get Meta API Keys) -->
+    <!-- TAB 2: AUTOMATION STUDIO (Rules Manager) -->
+    <!-- ======================================================================= -->
+    <section id="view-studio" class="hidden space-y-6">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-extrabold text-white flex items-center gap-2.5">
+            <i data-lucide="sliders" class="w-6 h-6 text-violet-400"></i>
+            <span>Automation Studio</span>
+          </h1>
+          <p class="text-xs text-slate-400 mt-1">Configure keyword triggers, targeting (All Reels vs Separate Post), and custom CTA buttons.</p>
+        </div>
+        <button onclick="openNewRuleModal()" class="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold shadow-lg shadow-violet-600/30 flex items-center gap-2 transition active:scale-95">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>+ Create New Automation</span>
+        </button>
+      </div>
+
+      <!-- Filter & Search Controls -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-slate-900/60 border border-white/5">
+        <div class="flex items-center gap-1.5">
+          <button onclick="filterRules('all')" id="ruleFilterBtn-all" class="px-3 py-1.5 rounded-xl bg-violet-600 text-white text-xs font-semibold transition">All Rules</button>
+          <button onclick="filterRules('active')" id="ruleFilterBtn-active" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-semibold transition">Active Only</button>
+          <button onclick="filterRules('paused')" id="ruleFilterBtn-paused" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-semibold transition">Paused</button>
+        </div>
+        <div class="relative flex-1 max-w-xs">
+          <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
+          <input type="text" id="ruleSearchInput" oninput="searchRules(this.value)" placeholder="Search keywords or rules..." class="w-full bg-slate-950/80 border border-white/10 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500">
+        </div>
+      </div>
+
+      <!-- Rules Container -->
+      <div id="studioRulesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Rendered dynamically -->
+      </div>
+
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 3: INSTAGRAM REELS & POSTS (Separate Media Management) -->
+    <!-- ======================================================================= -->
+    <section id="view-media" class="hidden space-y-6">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-extrabold text-white flex items-center gap-2.5">
+            <i data-lucide="film" class="w-6 h-6 text-pink-400"></i>
+            <span>Instagram Media & Reels</span>
+          </h1>
+          <p class="text-xs text-slate-400 mt-1">Separate view for Reels vs Posts/Carousels. Click "Automate This" on any media item.</p>
+        </div>
+        <button onclick="syncInstagramReels()" id="btnSyncReels" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-white/10 text-xs font-semibold flex items-center gap-2 transition">
+          <i data-lucide="refresh-cw" class="w-4 h-4 text-cyan-400"></i>
+          <span id="btnSyncReelsText">Sync Latest Media</span>
+        </button>
+      </div>
+
+      <!-- Media Segmented Filter Controls -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-slate-900/60 border border-white/5">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <button onclick="setMediaFilter('all')" id="mediaTab-all" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-violet-600 text-white text-xs font-semibold transition">
+            <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+            <span>All Media</span>
+            <span class="px-1.5 py-0.2 rounded-full bg-violet-700 text-[10px] font-mono" id="mediaCountAll">0</span>
+          </button>
+          <button onclick="setMediaFilter('reels')" id="mediaTab-reels" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-semibold transition">
+            <i data-lucide="video" class="w-3.5 h-3.5 text-pink-400"></i>
+            <span>Reels Only</span>
+            <span class="px-1.5 py-0.2 rounded-full bg-slate-700 text-[10px] font-mono" id="mediaCountReels">0</span>
+          </button>
+          <button onclick="setMediaFilter('posts')" id="mediaTab-posts" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-semibold transition">
+            <i data-lucide="image" class="w-3.5 h-3.5 text-cyan-400"></i>
+            <span>Posts & Carousels</span>
+            <span class="px-1.5 py-0.2 rounded-full bg-slate-700 text-[10px] font-mono" id="mediaCountPosts">0</span>
+          </button>
+          <button onclick="setMediaFilter('collabs')" id="mediaTab-collabs" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-800 text-purple-400 hover:text-purple-300 text-xs font-semibold transition">
+            <i data-lucide="users" class="w-3.5 h-3.5 text-purple-400"></i>
+            <span>Collabs & Tagged</span>
+            <span class="px-1.5 py-0.2 rounded-full bg-purple-900/50 text-[10px] font-mono text-purple-300" id="mediaCountCollabs">0</span>
+          </button>
+        </div>
+
+        <div class="relative flex-1 max-w-xs">
+          <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
+          <input type="text" id="mediaSearchInput" oninput="searchMedia(this.value)" placeholder="Search media captions..." class="w-full bg-slate-950/80 border border-white/10 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500">
+        </div>
+      </div>
+
+      <!-- Media Grid -->
+      <div id="mediaFullContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+        <!-- Rendered dynamically -->
+      </div>
+
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 4: INTERACTIVE PHONE SIMULATOR -->
+    <!-- ======================================================================= -->
+    <section id="view-simulator" class="hidden space-y-6">
+      
+      <div class="text-center max-w-xl mx-auto space-y-1">
+        <h2 class="text-2xl font-extrabold text-white flex items-center justify-center gap-2">
+          <i data-lucide="smartphone" class="w-6 h-6 text-violet-400"></i>
+          <span>Live Instagram Simulator</span>
+        </h2>
+        <p class="text-xs text-slate-400">Test comments and preview your public auto-reply and Direct Messages with clean CTA buttons in real-time.</p>
+      </div>
+
+      <div class="flex justify-center items-center py-4">
+        <!-- iPhone Mockup -->
+        <div class="w-[360px] h-[690px] bg-black rounded-[46px] p-3 shadow-2xl shadow-violet-950/40 border-[5px] border-slate-700 flex flex-col relative overflow-hidden">
+          
+          <!-- Dynamic Island -->
+          <div class="absolute top-4 left-1/2 -translate-x-1/2 w-28 h-6 bg-black rounded-full z-40 border border-white/5 flex items-center justify-between px-3">
+            <div class="w-2.5 h-2.5 rounded-full bg-slate-900 border border-white/10"></div>
+            <div class="w-2 h-2 rounded-full bg-slate-900"></div>
+          </div>
+
+          <div class="w-full h-full bg-[#05080E] rounded-[38px] flex flex-col overflow-hidden relative border border-white/5">
+            <!-- iOS Status Bar -->
+            <div class="pt-2 px-6 pb-2 flex justify-between items-center text-[10px] text-white font-medium z-30">
+              <span>9:41</span>
+              <div class="flex items-center gap-1.5">
+                <i data-lucide="wifi" class="w-3 h-3"></i>
+                <i data-lucide="battery" class="w-3 h-3"></i>
+              </div>
+            </div>
+
+            <!-- Instagram Top Header -->
+            <div class="px-3.5 py-2.5 bg-slate-900/90 border-b border-white/10 flex items-center justify-between text-xs text-white">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-pink-500 via-rose-500 to-amber-500 p-[1.5px]">
+                  <div class="w-full h-full rounded-full bg-black flex items-center justify-center overflow-hidden">
+                    <img id="simHeaderAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" class="w-full h-full object-cover">
+                  </div>
+                </div>
+                <div>
+                  <div class="flex items-center gap-1">
+                    <span class="font-bold text-[11px]" id="simHeaderUsername">@creator</span>
+                    <i data-lucide="badge-check" class="w-3 h-3 text-cyan-400"></i>
+                  </div>
+                  <span class="text-[9px] text-slate-400">Reel Comments</span>
+                </div>
+              </div>
+              <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">Live Test</span>
+            </div>
+
+            <!-- Comments Scroll Area -->
+            <div class="flex-1 p-3.5 overflow-y-auto space-y-3 bg-[#0B0F19]" id="simCommentsList">
+              <div class="text-[10px] text-slate-500 text-center font-mono py-2">
+                Type an active keyword below (e.g. <span class="text-cyan-400">"LINK"</span>, <span class="text-cyan-400">"PRICE"</span>) to simulate trigger.
+              </div>
+            </div>
+
+            <!-- Comment Input Bar -->
+            <div class="p-2.5 bg-slate-900/95 border-t border-white/10 flex items-center gap-2">
+              <input type="text" id="simInput" placeholder="Add a comment to test trigger..." class="flex-1 bg-black/60 border border-white/10 rounded-full px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500">
+              <button onclick="postSimulatorComment()" class="w-8 h-8 rounded-full bg-violet-600 hover:bg-violet-500 text-white flex items-center justify-center flex-shrink-0 transition">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+
+            <!-- Direct Message Floating iOS Notification & Card -->
+            <div id="simDmBanner" class="hidden absolute bottom-14 left-3 right-3 bg-slate-900/95 backdrop-blur-md border border-violet-500/40 rounded-2xl p-3.5 shadow-2xl z-50 animate-fadeIn text-xs space-y-2.5 max-h-[85%] overflow-y-auto">
+              <div class="flex items-center justify-between pb-1.5 border-b border-white/10">
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-6 rounded-full bg-violet-600 flex items-center justify-center text-white text-[10px]">
+                    <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                  </div>
+                  <div>
+                    <span class="font-bold text-white text-[11px]">Direct Message Delivered</span>
+                    <span class="text-[9px] text-emerald-400 ml-1">● Active Flow</span>
+                  </div>
+                </div>
+                <button onclick="document.getElementById('simDmBanner').classList.add('hidden')" class="text-slate-400 hover:text-white">
+                  <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+
+              <!-- DM 1 Bubble -->
+              <div id="simDm1Container" class="space-y-1.5">
+                <p class="text-slate-200 text-[11px] whitespace-pre-line leading-relaxed" id="simDmText"></p>
+                <div id="simDmButtons" class="pt-1 space-y-1.5">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+
+              <!-- Follower Simulated Quick-Reply Action -->
+              <div id="simFollowerReplyContainer" class="hidden flex justify-end pt-1 animate-fadeIn">
+                <div class="px-3 py-1.5 rounded-2xl bg-violet-600 text-white text-[10px] font-semibold flex items-center gap-1.5 shadow-md">
+                  <span id="simFollowerReplyText">follow me first</span>
+                  <i data-lucide="check-check" class="w-3 h-3 text-cyan-200"></i>
+                </div>
+              </div>
+
+              <!-- Second Reply (Secan Reply) Card -->
+              <div id="simSecondReplyContainer" class="hidden space-y-2 pt-2 border-t border-cyan-500/30 animate-fadeIn">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-1 text-[9px] font-bold text-cyan-400 uppercase tracking-wider">
+                    <i data-lucide="zap" class="w-3 h-3"></i>
+                    <span>Second Reply Delivered ✨</span>
+                  </div>
+                  <span class="text-[9px] text-slate-400 font-mono">Step 2 of 2</span>
+                </div>
+                <p class="text-slate-200 text-[11px] whitespace-pre-line leading-relaxed bg-cyan-950/30 p-2.5 rounded-xl border border-cyan-500/20" id="simSecondReplyText"></p>
+                <div id="simSecondReplyButtons" class="space-y-1.5"></div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 5: CAPTURED LEADS (CRM) -->
+    <!-- ======================================================================= -->
+    <section id="view-leads" class="hidden space-y-6">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-extrabold text-white flex items-center gap-2.5">
+            <i data-lucide="users" class="w-6 h-6 text-emerald-400"></i>
+            <span>Captured Leads</span>
+          </h1>
+          <p class="text-xs text-slate-400 mt-1">Users who commented with trigger keywords and received your automated direct messages.</p>
+        </div>
+        <button onclick="exportLeadsCsv()" class="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold shadow-lg shadow-violet-600/30 flex items-center gap-2 transition active:scale-95">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>Export Leads CSV</span>
+        </button>
+      </div>
+
+      <div class="glass-panel rounded-2xl border border-white/5 overflow-hidden">
+        <div id="leadsTableContainer">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 6: API KEYS STEP-BY-STEP SETUP GUIDE -->
     <!-- ======================================================================= -->
     <section id="view-setup" class="hidden space-y-6">
       
@@ -444,7 +737,7 @@
             <p>Under your App settings → <strong>Webhooks → Instagram</strong>, enter:</p>
             <div class="p-3 bg-black/40 rounded-xl border border-white/10 font-mono text-xs space-y-1">
               <div><strong>Callback URL:</strong> <span class="text-cyan-400" id="displayWebhookUrl">https://YOUR_DOMAIN/api/webhooks/instagram</span></div>
-              <div><strong>Verify Token:</strong> <span class="text-violet-400">EngageFlow_public_webhook_2026</span></div>
+              <div><strong>Verify Token:</strong> <span class="text-violet-400">engageflow_webhook_secret_2026</span></div>
             </div>
             <p>Subscribe to fields: <code class="font-mono text-emerald-400">comments</code> and <code class="font-mono text-emerald-400">messages</code>.</p>
           </div>
@@ -462,122 +755,41 @@
 
     </section>
 
-    <!-- ======================================================================= -->
-    <!-- TAB 3: AUTOMATION RULES (Studio) -->
-    <!-- ======================================================================= -->
-    <section id="view-studio" class="hidden space-y-6">
-      
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-2xl font-extrabold text-white">Automation Studio</h1>
-          <p class="text-xs text-slate-400">Manage all keyword triggers, automatic public replies, and direct messages.</p>
-        </div>
-        <button onclick="openNewRuleModal()" class="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold flex items-center gap-1.5 transition">
-          <i data-lucide="plus" class="w-4 h-4"></i>
-          <span>Create New Rule</span>
-        </button>
-      </div>
-
-      <div id="studioRulesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Rendered dynamically -->
-      </div>
-
-    </section>
-
-    <!-- ======================================================================= -->
-    <!-- TAB 4: INTERACTIVE PHONE SIMULATOR -->
-    <!-- ======================================================================= -->
-    <section id="view-simulator" class="hidden space-y-6">
-      <div class="text-center max-w-xl mx-auto space-y-1">
-        <h2 class="text-2xl font-extrabold text-white">Live Phone Simulator</h2>
-        <p class="text-xs text-slate-400">Test your configured rules safely in this interactive iPhone mockup before posting live on Instagram.</p>
-      </div>
-
-      <div class="flex justify-center items-center py-4">
-        <!-- iPhone Mockup -->
-        <div class="w-[360px] h-[680px] bg-black rounded-[46px] p-3 shadow-2xl shadow-violet-950/40 border-[5px] border-slate-700 flex flex-col relative overflow-hidden">
-          
-          <!-- Dynamic Island -->
-          <div class="absolute top-4 left-1/2 -translate-x-1/2 w-28 h-6 bg-black rounded-full z-40 border border-white/5"></div>
-
-          <div class="w-full h-full bg-[#05080E] rounded-[38px] flex flex-col overflow-hidden relative border border-white/5">
-            <!-- Status Bar -->
-            <div class="pt-2 px-6 pb-2 flex justify-between items-center text-[10px] text-white font-medium z-30">
-              <span>9:41</span>
-              <div class="flex items-center gap-1">
-                <i data-lucide="wifi" class="w-3 h-3"></i>
-                <i data-lucide="battery" class="w-3 h-3"></i>
-              </div>
-            </div>
-
-            <!-- Header -->
-            <div class="px-3 py-2 bg-slate-900 border-b border-white/10 flex items-center justify-between text-xs text-white">
-              <div class="flex items-center gap-2">
-                <span class="font-bold" id="simHeaderUsername">@my_creator_account</span>
-                <i data-lucide="badge-check" class="w-3.5 h-3.5 text-cyan-400"></i>
-              </div>
-              <span class="text-[9px] text-emerald-400">Live Simulator</span>
-            </div>
-
-            <!-- Comments List -->
-            <div class="flex-1 p-3 overflow-y-auto space-y-3 bg-[#0B0F19]" id="simCommentsList">
-              <div class="text-[10px] text-slate-500 text-center font-mono">Comments on Recent Reel</div>
-            </div>
-
-            <!-- Comment Input -->
-            <div class="p-2.5 bg-slate-900 border-t border-white/10 flex items-center gap-2">
-              <input type="text" id="simInput" placeholder="Type a comment to test..." class="flex-1 bg-black/60 border border-white/10 rounded-full px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500">
-              <button onclick="postSimulatorComment()" class="w-8 h-8 rounded-full bg-violet-600 hover:bg-violet-500 text-white flex items-center justify-center flex-shrink-0 transition">
-                <i data-lucide="send" class="w-3.5 h-3.5"></i>
-              </button>
-            </div>
-
-            <!-- Direct Message Overlay Banner -->
-            <div id="simDmBanner" class="hidden absolute bottom-14 left-3 right-3 bg-slate-900/95 backdrop-blur-md border border-violet-500/50 rounded-2xl p-3 shadow-2xl z-50 animate-fadeIn text-xs space-y-2">
-              <div class="flex items-center justify-between">
-                <span class="font-bold text-white flex items-center gap-1.5"><i data-lucide="message-circle" class="w-3.5 h-3.5 text-cyan-400"></i> Direct Message Delivered</span>
-                <button onclick="document.getElementById('simDmBanner').classList.add('hidden')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-3 h-3"></i></button>
-              </div>
-              <p class="text-slate-200 text-[11px] whitespace-pre-line" id="simDmText"></p>
-              <div id="simDmButtons" class="pt-1 space-y-1"></div>
-            </div>
-
-          </div>
-
-        </div>
-      </div>
-    </section>
-
-    <!-- ======================================================================= -->
-    <!-- TAB 5: LEADS CRM (Real Data Only) -->
-    <!-- ======================================================================= -->
-    <section id="view-leads" class="hidden space-y-6">
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-2xl font-extrabold text-white">Captured Leads</h1>
-          <p class="text-xs text-slate-400">Users who commented on your posts and received automated DMs.</p>
-        </div>
-        <button onclick="exportLeadsCsv()" class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold flex items-center gap-1.5 transition">
-          <i data-lucide="download" class="w-4 h-4"></i>
-          <span>Export CSV</span>
-        </button>
-      </div>
-
-      <div class="glass-panel rounded-2xl border border-white/5 overflow-hidden">
-        <div id="leadsTableContainer">
-          <div class="text-center py-16 space-y-2">
-            <i data-lucide="users" class="w-8 h-8 text-slate-500 mx-auto"></i>
-            <div class="font-bold text-sm text-slate-300">No Leads Captured Yet</div>
-            <p class="text-xs text-slate-500 max-w-sm mx-auto">Once your Instagram account is connected and followers start commenting with trigger keywords, captured leads will appear here.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
   </main>
 
   <!-- ======================================================================= -->
-  <!-- MODAL: CUSTOM APP NOTICE / ERROR MODAL (No Browser Alerts) -->
+  <!-- MODAL: PROMPT FOR META APP SECRET (OAUTH CODE REDEEMER) -->
+  <!-- ======================================================================= -->
+  <div id="oauthSecretModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-md rounded-2xl border border-violet-500/40 shadow-2xl p-6 sm:p-8 space-y-5 animate-fadeIn">
+      <div class="text-center space-y-2">
+        <div class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-tr from-blue-600 to-violet-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/30">
+          <i data-lucide="shield-check" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-base font-bold text-white">Enter Your Meta App Secret</h3>
+        <p class="text-xs text-slate-300">To securely exchange your Meta Authorization Code for a permanent token, enter your App Secret:</p>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="font-semibold text-slate-300">Meta App Secret *</label>
+          <input type="password" id="oauthAppSecretInput" placeholder="Enter your 32-character Meta App Secret" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-violet-500 mt-1 font-mono">
+        </div>
+        <div id="oauthSecretError" class="hidden p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-medium"></div>
+      </div>
+
+      <div class="flex items-center gap-3 pt-2">
+        <button onclick="document.getElementById('oauthSecretModal').classList.add('hidden')" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">Cancel</button>
+        <button onclick="submitOauthSecret()" id="btnSubmitOauthSecret" class="flex-1 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold shadow-lg shadow-violet-600/30 flex items-center justify-center gap-2 transition">
+          <i data-lucide="check" class="w-4 h-4"></i>
+          <span>Complete Connection</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- MODAL: CUSTOM NOTICE / ERROR MODAL -->
   <!-- ======================================================================= -->
   <div id="customNoticeModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
     <div class="glass-panel w-full max-w-md rounded-2xl border border-violet-500/30 shadow-2xl p-6 sm:p-8 space-y-5 animate-fadeIn">
@@ -594,13 +806,13 @@
       <div id="noticeModalHelpBox" class="hidden p-4 bg-slate-900/90 rounded-xl border border-white/10 space-y-2 text-xs text-slate-300">
         <div class="font-bold text-cyan-400 flex items-center gap-1.5">
           <i data-lucide="help-circle" class="w-4 h-4"></i>
-          <span>How to Fix (Sirf 30 Seconds):</span>
+          <span>Quick Solution (30 Seconds):</span>
         </div>
         <ol class="list-decimal list-inside space-y-1.5 text-[11px] text-slate-400 leading-relaxed">
-          <li>Mobile me <strong>Instagram App</strong> kholiye (Account: @beauty_of_nature_view7).</li>
-          <li>Apni Profile par jakar <strong>Edit Profile (प्रोफाइल संपादित करा)</strong> tap karein.</li>
-          <li>Neeche <strong>Page (पेज)</strong> par tap karke <strong>"Create Facebook Page"</strong> select karke Done kar dein.</li>
-          <li>Yahan wapas aakar <strong>"Try Again"</strong> dabayein — turant connected ho jayega!</li>
+          <li>Open Instagram App on your phone.</li>
+          <li>Go to Profile → <strong>Edit Profile</strong>.</li>
+          <li>Under Public Business Information, select <strong>Page</strong> and connect or create a Facebook Page.</li>
+          <li>Come back here and click <strong>"Try Again"</strong>.</li>
         </ol>
       </div>
 
@@ -618,7 +830,7 @@
   </div>
 
   <!-- ======================================================================= -->
-  <!-- MODAL: CONNECT INSTAGRAM ACCOUNT (Real Meta Validator) -->
+  <!-- MODAL: CONNECT INSTAGRAM ACCOUNT (1-Click & Manual) -->
   <!-- ======================================================================= -->
   <div id="connectModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
     <div class="glass-panel w-full max-w-lg rounded-2xl border border-white/10 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto">
@@ -636,9 +848,9 @@
           <i data-lucide="zap" class="w-4 h-4 text-cyan-400"></i>
           <span>Recommended 1-Click Connect</span>
         </div>
-        <p class="text-[11px] text-slate-300">Connect in 1 click using your Meta account:</p>
+        <p class="text-[11px] text-slate-300">Connect in 1 click using your official Meta account:</p>
         <div class="pt-1">
-          <button onclick="startMetaOauth()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-blue-600/30 transition transform active:scale-95">
+          <button onclick="startMetaOauth()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-blue-600/30 transition active:scale-95">
             <i data-lucide="instagram" class="w-4 h-4"></i>
             <span>1-Click Connect with Instagram</span>
           </button>
@@ -659,9 +871,8 @@
         </div>
 
         <div>
-          <label class="font-semibold text-slate-300">Page Access Token (Never-Expiring) *</label>
+          <label class="font-semibold text-slate-300">Page Access Token *</label>
           <input type="password" id="connAccessToken" placeholder="EAAT..." class="w-full bg-slate-900 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-violet-500 mt-1 font-mono">
-          <p class="text-[10px] text-slate-500 mt-0.5">Requires instagram_manage_comments and instagram_manage_messages permissions.</p>
         </div>
 
         <div>
@@ -689,55 +900,463 @@
   </div>
 
   <!-- ======================================================================= -->
-  <!-- MODAL: CREATE NEW AUTOMATION RULE -->
+  <!-- MODAL: PRO AUTOMATION FLOW BUILDER (All Reels vs Separate Reel/Post) -->
   <!-- ======================================================================= -->
-  <div id="ruleModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="glass-panel w-full max-w-lg rounded-2xl border border-white/10 shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between pb-3 border-b border-white/10">
-        <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <i data-lucide="plus-circle" class="w-4 h-4 text-violet-400"></i>
-          <span>Create Automation Rule</span>
-        </h3>
-        <button onclick="closeRuleModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
-      </div>
-
-      <div class="space-y-3.5 text-xs">
-        <div>
-          <label class="font-semibold text-slate-300">Rule Name</label>
-          <input type="text" id="modalRuleName" placeholder="e.g. Free PDF Roadmap Giveaway" class="w-full bg-slate-900 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-violet-500 mt-1">
-        </div>
-
-        <div>
-          <label class="font-semibold text-slate-300">Trigger Keywords (Comma separated)</label>
-          <input type="text" id="modalRuleTriggers" placeholder="e.g. ROADMAP, GUIDE, LINK, FREE" class="w-full bg-slate-900 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-violet-500 mt-1 font-mono">
-          <p class="text-[10px] text-slate-500 mt-0.5">When someone comments any of these words on your Reel, this automated flow triggers.</p>
-        </div>
-
-        <div>
-          <label class="font-semibold text-slate-300">Public Comment Auto-Reply</label>
-          <input type="text" id="modalRulePublicReply" placeholder="e.g. Sent the link to your DMs! 🚀 Check your inbox!" class="w-full bg-slate-900 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-violet-500 mt-1">
-        </div>
-
-        <div>
-          <label class="font-semibold text-slate-300">Direct Message Content (Supports {{name}})</label>
-          <textarea id="modalRuleDmText" rows="3" placeholder="Hey {{name}}! Here is the link you requested:" class="w-full bg-slate-900 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-violet-500 mt-1"></textarea>
-        </div>
-
-        <div class="p-3 bg-slate-900/60 rounded-xl border border-white/5 space-y-2">
-          <label class="font-semibold text-slate-300">Direct Message Action Button (CTA)</label>
-          <div class="grid grid-cols-2 gap-2">
-            <input type="text" id="modalBtnLabel" placeholder="Button Title (e.g. Download PDF 📥)" class="bg-black/40 border border-white/10 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-violet-500">
-            <input type="text" id="modalBtnUrl" placeholder="Target Link (https://...)" class="bg-black/40 border border-white/10 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-violet-500 font-mono">
+  <div id="ruleFlowModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+    <div class="glass-panel w-full max-w-4xl rounded-3xl border border-violet-500/30 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden animate-fadeIn">
+      
+      <!-- Modal Top Bar -->
+      <div class="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-slate-900/60">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-600 to-cyan-500 flex items-center justify-center text-white shadow-md shadow-violet-600/30">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-extrabold text-white" id="modalFlowTitle">Create Instagram Automation Flow</h3>
+            <p class="text-[11px] text-slate-400">Configure target media, keywords, and professional CTA buttons</p>
           </div>
         </div>
-      </div>
-
-      <div class="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
-        <button onclick="closeRuleModal()" class="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white">Cancel</button>
-        <button onclick="submitSaveRule()" class="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition">
-          Save Automation Rule
+        <button onclick="closeRuleFlowModal()" class="p-2 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
+
+      <!-- Step Navigation Indicator -->
+      <div class="px-6 py-3 border-b border-white/5 bg-black/40 flex items-center justify-between text-xs overflow-x-auto gap-2">
+        <button onclick="setFlowStep(1)" id="stepTab-1" class="step-nav-tab flex items-center gap-2 font-bold text-violet-400">
+          <span class="w-6 h-6 rounded-full bg-violet-600 text-white text-[10px] flex items-center justify-center">1</span>
+          <span>Target Media</span>
+        </button>
+        <div class="w-8 h-[1px] bg-white/10 hidden sm:block"></div>
+        <button onclick="setFlowStep(2)" id="stepTab-2" class="step-nav-tab flex items-center gap-2 font-semibold text-slate-500 hover:text-slate-300">
+          <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 text-[10px] flex items-center justify-center">2</span>
+          <span>Keywords Trigger</span>
+        </button>
+        <div class="w-8 h-[1px] bg-white/10 hidden sm:block"></div>
+        <button onclick="setFlowStep(3)" id="stepTab-3" class="step-nav-tab flex items-center gap-2 font-semibold text-slate-500 hover:text-slate-300">
+          <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 text-[10px] flex items-center justify-center">3</span>
+          <span>DM & CTA Buttons</span>
+        </button>
+        <div class="w-8 h-[1px] bg-white/10 hidden sm:block"></div>
+        <button onclick="setFlowStep(4)" id="stepTab-4" class="step-nav-tab flex items-center gap-2 font-semibold text-slate-500 hover:text-slate-300">
+          <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 text-[10px] flex items-center justify-center">4</span>
+          <span>Live Preview & Save</span>
+        </button>
+      </div>
+
+      <!-- Modal Body (Step Panels) -->
+      <div class="p-6 overflow-y-auto flex-1 space-y-6">
+
+        <!-- =================================================================== -->
+        <!-- STEP 1: TARGET MEDIA SELECTION -->
+        <!-- =================================================================== -->
+        <div id="flowStepPanel-1" class="space-y-5">
+          <div class="space-y-1">
+            <h4 class="text-sm font-bold text-white">Where should this automation run?</h4>
+            <p class="text-xs text-slate-400">Choose whether to apply this auto-DM rule account-wide, across all video Reels, or to one specific Reel / Post.</p>
+          </div>
+
+          <!-- 4 Target Choice Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            
+            <!-- Choice A: All Reels & Posts -->
+            <div onclick="selectFlowTarget('all')" id="targetCard-all" class="target-card p-4 rounded-2xl border-2 border-violet-500 bg-violet-600/10 cursor-pointer transition flex flex-col justify-between space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="w-9 h-9 rounded-xl bg-violet-600/30 text-violet-300 flex items-center justify-center">
+                  <i data-lucide="globe" class="w-5 h-5"></i>
+                </div>
+                <div class="target-radio w-5 h-5 rounded-full border-2 border-violet-500 bg-violet-600 flex items-center justify-center">
+                  <i data-lucide="check" class="w-3 h-3 text-white"></i>
+                </div>
+              </div>
+              <div>
+                <h5 class="text-xs font-bold text-white">All Reels & Posts</h5>
+                <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Monitors every comment across your entire Instagram profile.</p>
+              </div>
+            </div>
+
+            <!-- Choice B: All Reels Only -->
+            <div onclick="selectFlowTarget('all_reels')" id="targetCard-all_reels" class="target-card p-4 rounded-2xl border-2 border-white/5 bg-slate-900/60 hover:border-violet-500/40 cursor-pointer transition flex flex-col justify-between space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="w-9 h-9 rounded-xl bg-pink-500/10 text-pink-400 flex items-center justify-center">
+                  <i data-lucide="video" class="w-5 h-5"></i>
+                </div>
+                <div class="target-radio w-5 h-5 rounded-full border-2 border-white/20 flex items-center justify-center"></div>
+              </div>
+              <div>
+                <h5 class="text-xs font-bold text-white">All Reels Only</h5>
+                <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Triggers strictly on comments under all your video Reels.</p>
+              </div>
+            </div>
+
+            <!-- Choice C: All Posts & Carousels -->
+            <div onclick="selectFlowTarget('all_posts')" id="targetCard-all_posts" class="target-card p-4 rounded-2xl border-2 border-white/5 bg-slate-900/60 hover:border-violet-500/40 cursor-pointer transition flex flex-col justify-between space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="w-9 h-9 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+                  <i data-lucide="image" class="w-5 h-5"></i>
+                </div>
+                <div class="target-radio w-5 h-5 rounded-full border-2 border-white/20 flex items-center justify-center"></div>
+              </div>
+              <div>
+                <h5 class="text-xs font-bold text-white">All Posts / Carousels</h5>
+                <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Triggers only on static photo posts and multi-slide carousels.</p>
+              </div>
+            </div>
+
+            <!-- Choice D: Specific Reel or Post -->
+            <div onclick="selectFlowTarget('specific')" id="targetCard-specific" class="target-card p-4 rounded-2xl border-2 border-white/5 bg-slate-900/60 hover:border-violet-500/40 cursor-pointer transition flex flex-col justify-between space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
+                  <i data-lucide="target" class="w-5 h-5"></i>
+                </div>
+                <div class="target-radio w-5 h-5 rounded-full border-2 border-white/20 flex items-center justify-center"></div>
+              </div>
+              <div>
+                <h5 class="text-xs font-bold text-white">Specific Reel or Post</h5>
+                <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Attach this automation to 1 exact post or viral reel.</p>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Embedded Media Picker (Visible when "Specific" is selected) -->
+          <div id="flowSpecificMediaPicker" class="hidden p-4 rounded-2xl bg-black/40 border border-white/10 space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                <i data-lucide="check-circle" class="w-4 h-4 text-violet-400"></i>
+                <span>Select Target Media:</span>
+                <span id="selectedMediaLabel" class="text-violet-400 font-mono text-[11px] font-normal">None selected</span>
+              </span>
+              <div class="flex items-center gap-1.5">
+                <button onclick="filterPickerMedia('all')" id="pickerTab-all" class="px-2.5 py-1 rounded-lg bg-violet-600 text-white text-[10px] font-semibold">All</button>
+                <button onclick="filterPickerMedia('reels')" id="pickerTab-reels" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 text-[10px] font-semibold">Reels</button>
+                <button onclick="filterPickerMedia('posts')" id="pickerTab-posts" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 text-[10px] font-semibold">Posts</button>
+              </div>
+            </div>
+
+            <!-- Picker Grid -->
+            <div id="pickerMediaGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 max-h-56 overflow-y-auto p-1">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- STEP 2: KEYWORD TRIGGERS & MATCH CONDITIONS -->
+        <!-- =================================================================== -->
+        <div id="flowStepPanel-2" class="hidden space-y-5">
+          <div class="space-y-1">
+            <h4 class="text-sm font-bold text-white">When should this automation trigger?</h4>
+            <p class="text-xs text-slate-400">Configure your trigger keywords, match conditions, and anti-spam negative keywords.</p>
+          </div>
+
+          <div class="space-y-4 text-xs">
+            <!-- Rule Name -->
+            <div>
+              <label class="font-semibold text-slate-300">Automation Rule Name *</label>
+              <input type="text" id="modalRuleName" placeholder="e.g. 50% Off E-Book Giveaway" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-violet-500 mt-1">
+            </div>
+
+            <!-- Match Condition Type -->
+            <div class="space-y-2">
+              <label class="font-semibold text-slate-300">Match Condition *</label>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div onclick="setMatchType('contains')" id="matchCard-contains" class="p-3 rounded-xl border-2 border-violet-500 bg-violet-600/10 cursor-pointer transition">
+                  <div class="flex items-center gap-2 font-bold text-white text-xs">
+                    <i data-lucide="check-square" class="w-4 h-4 text-violet-400"></i>
+                    <span>Contains Keyword</span>
+                  </div>
+                  <p class="text-[10px] text-slate-400 mt-1">Recommended. Matches words inside full sentences (e.g. "please send LINK").</p>
+                </div>
+
+                <div onclick="setMatchType('exact')" id="matchCard-exact" class="p-3 rounded-xl border-2 border-white/5 bg-slate-900/60 cursor-pointer transition">
+                  <div class="flex items-center gap-2 font-bold text-white text-xs">
+                    <i data-lucide="target" class="w-4 h-4 text-slate-400"></i>
+                    <span>Exact Match</span>
+                  </div>
+                  <p class="text-[10px] text-slate-400 mt-1">Only triggers if the comment is solely the keyword.</p>
+                </div>
+
+                <div onclick="setMatchType('any_comment')" id="matchCard-any_comment" class="p-3 rounded-xl border-2 border-white/5 bg-slate-900/60 cursor-pointer transition">
+                  <div class="flex items-center gap-2 font-bold text-white text-xs">
+                    <i data-lucide="zap" class="w-4 h-4 text-slate-400"></i>
+                    <span>Every Comment</span>
+                  </div>
+                  <p class="text-[10px] text-slate-400 mt-1">Auto-replies to every comment without requiring any keyword.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Keyword Tags Input Box (Shown if contains or exact) -->
+            <div id="keywordsConfigBox" class="space-y-2">
+              <label class="font-semibold text-slate-300 flex items-center justify-between">
+                <span>Trigger Keywords *</span>
+                <span class="text-[10px] text-slate-500 font-normal">Press Enter or comma to add</span>
+              </label>
+              
+              <!-- Chips Box -->
+              <div class="p-2.5 rounded-xl bg-slate-900 border border-white/10 flex flex-wrap items-center gap-1.5 min-h-[46px]" id="keywordChipsBox">
+                <input type="text" id="keywordTagInput" onkeydown="handleKeywordInputKey(event)" placeholder="Type keyword (e.g. LINK) and press Enter..." class="flex-1 bg-transparent text-xs text-white focus:outline-none min-w-[180px] p-1 font-mono">
+              </div>
+
+              <!-- Quick Tag Suggestions -->
+              <div class="flex items-center gap-1.5 flex-wrap pt-1">
+                <span class="text-[10px] text-slate-500">Quick Add:</span>
+                <button type="button" onclick="addKeywordChip('LINK')" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 text-[10px] font-mono border border-white/5">+ LINK</button>
+                <button type="button" onclick="addKeywordChip('PRICE')" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 text-[10px] font-mono border border-white/5">+ PRICE</button>
+                <button type="button" onclick="addKeywordChip('GUIDE')" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 text-[10px] font-mono border border-white/5">+ GUIDE</button>
+                <button type="button" onclick="addKeywordChip('EBOOK')" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 text-[10px] font-mono border border-white/5">+ EBOOK</button>
+                <button type="button" onclick="addKeywordChip('FREE')" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 text-[10px] font-mono border border-white/5">+ FREE</button>
+                <button type="button" onclick="addKeywordChip('ROADMAP')" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 text-[10px] font-mono border border-white/5">+ ROADMAP</button>
+              </div>
+            </div>
+
+            <!-- Excluded Keywords (Anti-Spam) -->
+            <div class="space-y-1 pt-1">
+              <label class="font-semibold text-slate-300 flex items-center justify-between">
+                <span>Exclude Negative Keywords (Optional)</span>
+                <span class="text-[10px] text-slate-500">Skips comments containing these words</span>
+              </label>
+              <input type="text" id="modalRuleExcludes" placeholder="e.g. SPAM, FAKE, SCAM, BOT, HATE" class="w-full bg-slate-900 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-violet-500 font-mono">
+            </div>
+
+          </div>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- STEP 3: DIRECT MESSAGE & CLEAN PROFESSIONAL BUTTONS -->
+        <!-- =================================================================== -->
+        <div id="flowStepPanel-3" class="hidden space-y-5">
+          <div class="space-y-1">
+            <h4 class="text-sm font-bold text-white">What should followers receive?</h4>
+            <p class="text-xs text-slate-400">Design your automated Direct Message and add clean, professional Call-to-Action (CTA) buttons.</p>
+          </div>
+
+          <div class="space-y-4 text-xs">
+            
+            <!-- DM Message Input -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <label class="font-semibold text-slate-300">Direct Message Content (DM) *</label>
+                <div class="flex items-center gap-1">
+                  <span class="text-[10px] text-slate-500">Insert tag:</span>
+                  <button type="button" onclick="insertToken('{{name}}')" class="px-1.5 py-0.5 rounded bg-violet-600/30 text-violet-300 hover:bg-violet-600/50 text-[10px] font-mono">+ {{name}}</button>
+                  <button type="button" onclick="insertToken('{{username}}')" class="px-1.5 py-0.5 rounded bg-violet-600/30 text-violet-300 hover:bg-violet-600/50 text-[10px] font-mono">+ {{username}}</button>
+                </div>
+              </div>
+              <textarea id="modalRuleDmText" rows="3" oninput="updateDmSimulatorPreview()" placeholder="Hey {{name}}! Thank you for commenting. Here is the special link you requested:" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-violet-500 leading-relaxed"></textarea>
+            </div>
+
+            <!-- CLEAN PROFESSIONAL CTA BUTTONS SECTION -->
+            <div class="p-4 rounded-2xl bg-slate-900/80 border border-violet-500/30 space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-lg bg-violet-600/20 text-violet-400 flex items-center justify-center font-bold">
+                    <i data-lucide="link" class="w-4 h-4"></i>
+                  </div>
+                  <div>
+                    <h5 class="text-xs font-bold text-white">Professional Action Buttons (CTA)</h5>
+                    <p class="text-[10px] text-slate-400">Add up to 3 interactive clickable buttons in the Direct Message</p>
+                  </div>
+                </div>
+                <button type="button" onclick="addCtaButtonField()" id="btnAddCtaBtn" class="px-3 py-1.5 rounded-xl bg-violet-600/20 hover:bg-violet-600/30 text-violet-300 border border-violet-500/40 text-xs font-semibold flex items-center gap-1.5 transition">
+                  <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                  <span>Add Button</span>
+                </button>
+              </div>
+
+              <!-- Buttons Container -->
+              <div id="ctaButtonsList" class="space-y-2.5">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- SECOND REPLY (2-STEP CONVERSATION FLOW / SECAN REPLY) -->
+            <div class="p-4 rounded-2xl bg-gradient-to-br from-slate-900/90 to-cyan-950/20 border border-cyan-500/30 space-y-3.5">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold">
+                    <i data-lucide="message-square-reply" class="w-4 h-4"></i>
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <h5 class="text-xs font-bold text-white">Second Reply Flow (2-Step Follow-Up DM)</h5>
+                      <span class="px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 text-[9px] font-bold uppercase tracking-wider">Secan Reply</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400">Trigger an automated 2nd DM with PDF, Image or Link when follower clicks a button or replies</p>
+                  </div>
+                </div>
+                <!-- Enable/Disable Switch -->
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="modalSecondReplyToggle" onchange="toggleSecondReplySection(this.checked)" class="sr-only peer">
+                  <div class="w-10 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500"></div>
+                </label>
+              </div>
+
+              <!-- Second Reply Configuration Form (Collapsible) -->
+              <div id="secondReplyConfigContainer" class="hidden space-y-3 pt-2 border-t border-white/10">
+                <div class="p-2.5 rounded-xl bg-cyan-950/30 border border-cyan-500/20 text-[11px] text-cyan-200 flex items-start gap-2">
+                  <i data-lucide="info" class="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5"></i>
+                  <span>
+                    <strong>How it works:</strong> In DM 1, you can ask follower to tap your Quick Reply button (e.g. <em>"follow me first"</em> or <em>"I followed"</em>). Once they tap or reply, EngageFlow automatically sends this <strong>Second Reply</strong> containing your PDF, image, or resource!
+                  </span>
+                </div>
+
+                <!-- Trigger text -->
+                <div class="space-y-1">
+                  <label class="text-[10px] font-semibold text-slate-300">Trigger Keyword / Button Text for 2nd Reply</label>
+                  <input type="text" id="secReplyTriggerText" placeholder="e.g. follow me first (matches Quick Reply button text)" class="w-full bg-slate-900 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500">
+                </div>
+
+                <!-- Second DM Message -->
+                <div class="space-y-1">
+                  <label class="text-[10px] font-semibold text-slate-300">Second DM Message</label>
+                  <textarea id="secReplyMessage" rows="2" placeholder="Awesome! Thanks for following. Here is your free PDF Guide: 👇" class="w-full bg-slate-900 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500 leading-relaxed"></textarea>
+                </div>
+
+                <!-- Deliverable Attachment Selector -->
+                <div class="space-y-2">
+                  <label class="text-[10px] font-semibold text-slate-300">Second Reply Deliverable (PDF Document, Image, or Resource)</label>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <input type="text" id="secReplyBtnLabel" placeholder="Button Title (e.g. Download PDF Guide 📄)" class="w-full bg-slate-900 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500">
+                    <div class="flex items-center gap-1.5">
+                      <input type="text" id="secReplyMediaUrl" placeholder="File URL or https://..." class="flex-1 bg-slate-900 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono">
+                      <label class="px-3 py-2 rounded-xl bg-cyan-600/30 hover:bg-cyan-600/40 text-cyan-300 border border-cyan-500/40 text-xs font-semibold cursor-pointer flex items-center gap-1 flex-shrink-0 transition">
+                        <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                        <span>Upload</span>
+                        <input type="file" id="secReplyFileInput" accept=".pdf,image/*,.zip,.docx" class="hidden" onchange="uploadSecondReplyDeliverable(event)">
+                      </label>
+                    </div>
+                  </div>
+                  <div id="secReplyUploadStatus" class="hidden text-[10px] text-emerald-400 flex items-center gap-1.5"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Public Comment Auto-Reply -->
+            <div class="space-y-1.5">
+              <label class="font-semibold text-slate-300 flex items-center justify-between">
+                <span>Public Comment Auto-Reply (Optional)</span>
+                <span class="text-[10px] text-slate-500">Separate multiple with "|" for random rotation</span>
+              </label>
+              <input type="text" id="modalRulePublicReply" placeholder="Sent the link to your DMs! 🚀 Check your inbox! | Check your DMs! 📩 | Delivered to your inbox! ✨" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-violet-500">
+              <p class="text-[10px] text-slate-500">Rotating replies keeps your comments fresh and prevents Instagram spam detection.</p>
+            </div>
+
+            <!-- Delay Selector -->
+            <div class="space-y-1.5">
+              <label class="font-semibold text-slate-300">Delivery Timing</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button type="button" onclick="setDelayTiming(0)" id="delayBtn-0" class="py-2 px-3 rounded-xl bg-violet-600 text-white font-semibold text-xs transition">Instant (0s)</button>
+                <button type="button" onclick="setDelayTiming(15)" id="delayBtn-15" class="py-2 px-3 rounded-xl bg-slate-800 text-slate-400 hover:text-white font-semibold text-xs transition">Human (15s)</button>
+                <button type="button" onclick="setDelayTiming(30)" id="delayBtn-30" class="py-2 px-3 rounded-xl bg-slate-800 text-slate-400 hover:text-white font-semibold text-xs transition">Safe Drip (30s)</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- STEP 4: LIVE REVIEW & PREVIEW -->
+        <!-- =================================================================== -->
+        <div id="flowStepPanel-4" class="hidden space-y-5">
+          <div class="space-y-1">
+            <h4 class="text-sm font-bold text-white">Review & Save Automation</h4>
+            <p class="text-xs text-slate-400">Check how your automation will look in followers' Direct Messages before publishing.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            
+            <!-- Summary Specs Card -->
+            <div class="p-5 rounded-2xl bg-slate-900/80 border border-white/5 space-y-4 text-xs">
+              <h5 class="font-bold text-white text-xs border-b border-white/10 pb-2 flex items-center gap-2">
+                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+                <span>Configuration Summary</span>
+              </h5>
+
+              <div class="space-y-2.5">
+                <div>
+                  <span class="text-slate-400 block text-[11px]">Rule Name:</span>
+                  <span class="font-bold text-white" id="reviewRuleName">—</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[11px]">Target Media:</span>
+                  <span class="font-bold text-violet-400 font-mono" id="reviewTargetMedia">All Reels & Posts</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[11px]">Trigger Condition:</span>
+                  <div class="flex flex-wrap gap-1 mt-1" id="reviewTriggersList"></div>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[11px]">Public Comment Reply:</span>
+                  <p class="text-slate-300 italic text-[11px] mt-0.5" id="reviewPublicReply">—</p>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[11px]">Action Buttons Attached:</span>
+                  <span class="font-bold text-cyan-400" id="reviewButtonsCount">0 Buttons</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Realistic Direct Message Mockup -->
+            <div class="p-4 rounded-3xl bg-[#0B0F19] border border-white/10 space-y-3 shadow-2xl">
+              <div class="flex items-center gap-2.5 pb-2.5 border-b border-white/10">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-pink-500 to-amber-500 p-[1.5px]">
+                  <img id="reviewCreatorAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" class="w-full h-full rounded-full object-cover">
+                </div>
+                <div>
+                  <div class="flex items-center gap-1">
+                    <span class="font-bold text-white text-xs" id="reviewCreatorUsername">@creator</span>
+                    <i data-lucide="badge-check" class="w-3.5 h-3.5 text-cyan-400"></i>
+                  </div>
+                  <span class="text-[9px] text-slate-400">Instagram Direct Message</span>
+                </div>
+              </div>
+
+              <!-- Message Bubble -->
+              <div class="space-y-2">
+                <div class="p-3.5 rounded-2xl bg-slate-800 text-slate-200 text-xs leading-relaxed max-w-[90%] whitespace-pre-line" id="reviewDmMessage">
+                  Hey there! Here is your requested link:
+                </div>
+
+                <!-- CTA Buttons rendered in Mockup -->
+                <div id="reviewDmButtonsContainer" class="space-y-1.5 pt-1">
+                  <!-- Rendered dynamically -->
+                </div>
+
+                <!-- Second Reply (Follow-Up DM) Mockup -->
+                <div id="reviewSecondReplyPreview" class="hidden space-y-2 pt-2 border-t border-cyan-500/20 animate-fadeIn">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer (Step Controls & Save) -->
+      <div class="px-6 py-4 border-t border-white/10 bg-slate-900/60 flex items-center justify-between">
+        <button type="button" onclick="prevFlowStep()" id="btnFlowPrev" class="hidden px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white transition">
+          Back
+        </button>
+        <div class="flex-1"></div>
+        <div class="flex items-center gap-3">
+          <button type="button" onclick="closeRuleFlowModal()" class="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white transition">
+            Cancel
+          </button>
+          <button type="button" onclick="nextFlowStep()" id="btnFlowNext" class="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold shadow-lg shadow-violet-600/30 flex items-center gap-2 transition active:scale-95">
+            <span>Continue</span>
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </button>
+          <button type="button" onclick="submitSaveFlowRule()" id="btnFlowSubmit" class="hidden px-6 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-500 hover:from-violet-500 hover:to-cyan-400 text-white text-xs font-bold shadow-lg shadow-violet-600/30 flex items-center gap-2 transition active:scale-95">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Save & Activate Automation</span>
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -746,10 +1365,12 @@
     <div class="w-6 h-6 rounded-full bg-violet-600 flex items-center justify-center text-white flex-shrink-0">
       <i data-lucide="check" class="w-3.5 h-3.5"></i>
     </div>
-    <span id="toastMsg">Operation successful!</span>
+    <span id="toastMsg">Operation completed successfully!</span>
   </div>
 
-  <!-- Client Script -->
+  <!-- ======================================================================= -->
+  <!-- CLIENT APPLICATION JAVASCRIPT LOGIC -->
+  <!-- ======================================================================= -->
   <script>
     let pendingAuthCode = '';
     let state = {
@@ -761,6 +1382,35 @@
       metrics: { totalDMsSent: 0 }
     };
 
+    // Active Flow Builder Modal State
+    let flowState = {
+      editingRuleId: null,
+      currentStep: 1,
+      targetType: 'all', // 'all', 'all_reels', 'all_posts', 'specific'
+      selectedMediaId: null,
+      selectedMediaItem: null,
+      matchType: 'contains', // 'contains', 'exact', 'any_comment'
+      triggerKeywords: ['LINK'],
+      excludeKeywords: [],
+      ctaButtons: [
+        { id: 'btn_1', label: 'Download Free Guide 📩', type: 'url', url: 'https://instagram.com' },
+        { id: 'btn_2', label: 'Explore More 🚀', type: 'quick_reply', url: 'follow me first' }
+      ],
+      secondReply: {
+        enabled: false,
+        triggerText: 'follow me first',
+        message: 'Awesome! Thanks for following. Here is your free PDF Guide: 👇',
+        mediaUrl: '',
+        fileName: '',
+        buttons: [{ label: 'Download PDF Guide 📄', url: '', type: 'pdf' }]
+      },
+      delaySeconds: 0
+    };
+
+    // Filter states
+    let currentRuleFilter = 'all';
+    let currentMediaFilter = 'all';
+
     // Helper: Authenticated API Fetch
     function apiFetch(url, options = {}) {
       const token = localStorage.getItem('EngageFlow_token');
@@ -771,31 +1421,14 @@
       return fetch(url, options);
     }
 
-    // Direct Instagram Login (Bypasses Facebook Login / Facebook Pages)
-    function startInstagramDirectOauth() {
-      const token = localStorage.getItem('EngageFlow_token') || '';
-      const clientId = '3050678375263805';
-      const redirectUri = `${window.location.origin}/api/auth/facebook/callback`;
-      const oauthUrl = `https://www.instagram.com/oauth/authorize?enable_fb_login=0&force_authentication=1&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=instagram_business_basic,instagram_business_manage_messages,instagram_business_manage_comments&state=${encodeURIComponent(token)}`;
-      window.location.href = oauthUrl;
-    }
-
-    // Launch Meta OAuth with explicit scopes for Instagram + Facebook Page
-    function startMetaOauth() {
-      const token = localStorage.getItem('EngageFlow_token') || '';
-      const clientId = '3050678375263805';
-      const redirectUri = `${window.location.origin}/api/auth/facebook/callback`;
-      const scopes = 'instagram_basic,instagram_manage_comments,instagram_manage_messages,pages_show_list,pages_read_engagement';
-      const oauthUrl = `https://www.facebook.com/dialog/oauth?client_id=${clientId}&display=popup&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&state=${encodeURIComponent(token)}&auth_type=rerequest`;
-      window.location.href = oauthUrl;
-    }
-
+    // Refresh Lucide Icons safely
     function refreshIcons() {
       setTimeout(() => {
         if (window.lucide) window.lucide.createIcons();
       }, 50);
     }
 
+    // Toast Notification System
     function showToast(msg, type = 'success') {
       const toast = document.getElementById('toast');
       const toastMsg = document.getElementById('toastMsg');
@@ -803,13 +1436,13 @@
       
       const iconWrap = toast.querySelector('div');
       if (type === 'error') {
-        toast.className = 'fixed bottom-6 right-6 z-50 glass-panel border border-rose-500/50 bg-rose-950/80 px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 text-xs text-white';
+        toast.className = 'fixed bottom-6 right-6 z-50 glass-panel border border-rose-500/50 bg-rose-950/90 px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 text-xs text-white animate-fadeIn';
         if (iconWrap) {
           iconWrap.className = 'w-6 h-6 rounded-full bg-rose-600 flex items-center justify-center text-white flex-shrink-0';
           iconWrap.innerHTML = '<i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>';
         }
       } else {
-        toast.className = 'fixed bottom-6 right-6 z-50 glass-panel border border-violet-500/40 bg-slate-900/90 px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 text-xs text-white';
+        toast.className = 'fixed bottom-6 right-6 z-50 glass-panel border border-violet-500/40 bg-slate-900/95 px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 text-xs text-white animate-fadeIn';
         if (iconWrap) {
           iconWrap.className = 'w-6 h-6 rounded-full bg-violet-600 flex items-center justify-center text-white flex-shrink-0';
           iconWrap.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i>';
@@ -821,7 +1454,7 @@
       window.__toastTimer = setTimeout(() => toast.classList.add('hidden'), 3500);
     }
 
-    // Custom Glassmorphic Notice Modal (Replaces browser alerts)
+    // Custom Glassmorphic Notice Modal
     function showNoticeModal(title, msg, showHelp = false) {
       document.getElementById('noticeModalTitle').innerText = title;
       document.getElementById('noticeModalMessage').innerText = msg;
@@ -836,6 +1469,7 @@
       document.getElementById('customNoticeModal').classList.add('hidden');
     }
 
+    // Tab Navigation
     function switchTab(tabId) {
       document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
       const target = document.getElementById(`view-${tabId}`);
@@ -874,7 +1508,6 @@
     }
 
     async function checkAuth() {
-      // Check OAuth return params
       const urlParams = new URLSearchParams(window.location.search);
       pendingAuthCode = urlParams.get('auth_code') || '';
 
@@ -930,7 +1563,6 @@
       refreshIcons();
     }
 
-    // SUBMIT OAUTH APP SECRET TO COMPLETE TOKEN EXCHANGE
     async function submitOauthSecret() {
       const secretInput = document.getElementById('oauthAppSecretInput');
       const appSecret = secretInput.value.trim();
@@ -971,7 +1603,7 @@
           window.history.replaceState({}, document.title, window.location.pathname);
           updateInstagramUI();
           loadRealData();
-          showToast(`🎉 Connected to ${data.instagram.username} with ${data.reelsCount || 0} reels synced!`);
+          showToast(`🎉 Connected to ${data.instagram.username} with ${data.reelsCount || 0} media synced!`);
         } else {
           errBox.innerText = data.error || 'Failed to exchange authorization code.';
           errBox.classList.remove('hidden');
@@ -981,9 +1613,18 @@
         errBox.classList.remove('hidden');
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i><span>Complete Connection & Sync</span>';
+        btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i><span>Complete Connection</span>';
         refreshIcons();
       }
+    }
+
+    function startMetaOauth() {
+      const token = localStorage.getItem('EngageFlow_token') || '';
+      const clientId = '2401678503569810';
+      const configId = '1114942864880674';
+      const redirectUri = `${window.location.origin}/api/auth/facebook/callback`;
+      const oauthUrl = `https://www.facebook.com/dialog/oauth?client_id=${clientId}&config_id=${configId}&display=popup&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&state=${encodeURIComponent(token)}&auth_type=rerequest`;
+      window.location.href = oauthUrl;
     }
 
     async function handleLogin() {
@@ -1041,6 +1682,23 @@
       }
     }
 
+    function openAuthModal() {
+      const modal = document.getElementById('authModal');
+      const closeBtn = document.getElementById('btnAuthModalClose');
+      if (state.currentUser && closeBtn) closeBtn.classList.remove('hidden');
+      else if (closeBtn) closeBtn.classList.add('hidden');
+      modal.classList.remove('hidden');
+      refreshIcons();
+    }
+
+    function closeAuthModal() {
+      if (state.currentUser) {
+        document.getElementById('authModal').classList.add('hidden');
+      } else {
+        showToast('Please sign in or register to access the dashboard', 'error');
+      }
+    }
+
     function handleLogout() {
       const token = localStorage.getItem('EngageFlow_token');
       if (token) {
@@ -1050,18 +1708,36 @@
         });
       }
       localStorage.removeItem('EngageFlow_token');
-      window.location.reload();
+      state.currentUser = null;
+      updateUserUI();
+      openAuthModal();
+      showToast('Logged out. Please sign in to continue.');
     }
 
     function updateUserUI() {
+      const userBadge = document.getElementById('userProfileBadge');
+      const loginBtn = document.getElementById('btnHeaderLogin');
+      const modalClose = document.getElementById('btnAuthModalClose');
+
       if (state.currentUser) {
-        document.getElementById('userProfileBadge').classList.remove('hidden');
-        document.getElementById('navUserName').innerText = state.currentUser.name;
-        document.getElementById('navUserEmail').innerText = state.currentUser.email;
+        if (userBadge) userBadge.classList.remove('hidden');
+        if (loginBtn) loginBtn.classList.add('hidden');
+        if (modalClose) modalClose.classList.remove('hidden');
+        const nameEl = document.getElementById('navUserName');
+        const emailEl = document.getElementById('navUserEmail');
+        if (nameEl) nameEl.innerText = state.currentUser.name;
+        if (emailEl) emailEl.innerText = state.currentUser.email;
+      } else {
+        if (userBadge) userBadge.classList.add('hidden');
+        if (loginBtn) loginBtn.classList.remove('hidden');
+        if (modalClose) modalClose.classList.add('hidden');
       }
+      refreshIcons();
     }
 
+    // =========================================================================
     // LOAD REAL DATA (User-Scoped Multi-Tenant)
+    // =========================================================================
     async function loadRealData() {
       try {
         // 1. Instagram Status
@@ -1076,7 +1752,7 @@
         const rulesRes = await apiFetch('/api/rules');
         const rulesData = await rulesRes.json();
         if (rulesData.success) {
-          state.rules = rulesData.rules;
+          state.rules = rulesData.rules || [];
           renderRules();
         }
 
@@ -1093,85 +1769,21 @@
         const leadsRes = await apiFetch('/api/leads');
         const leadsData = await leadsRes.json();
         if (leadsData.success) {
-          state.leads = leadsData.leads;
+          state.leads = leadsData.leads || [];
           renderLeads();
         }
 
-        // 5. Synced Reels
+        // 5. Synced Media (Reels & Posts)
         const reelsRes = await apiFetch('/api/reels');
         const reelsData = await reelsRes.json();
         if (reelsData.success) {
           state.reels = reelsData.reels || [];
-          renderReels(state.reels);
+          renderAllMediaViews();
         }
       } catch (err) {
         console.error('Error loading real data:', err);
       }
       refreshIcons();
-    }
-
-    function renderReels(reels) {
-      const container = document.getElementById('reelsContainer');
-      if (!container) return;
-
-      if (!reels || !reels.length) {
-        container.innerHTML = `
-          <div class="col-span-full text-center py-8 border border-dashed border-white/10 rounded-2xl space-y-2">
-            <i data-lucide="camera" class="w-6 h-6 text-slate-500 mx-auto"></i>
-            <div class="font-bold text-xs text-slate-300">No Synced Media Found</div>
-            <p class="text-[11px] text-slate-500">${state.instagram.connected ? 'Click "Sync Reels Now" to load your latest posts.' : 'Connect your Instagram account to sync reels.'}</p>
-          </div>
-        `;
-        refreshIcons();
-        return;
-      }
-
-      container.innerHTML = reels.map(r => `
-        <div class="glass-card rounded-xl overflow-hidden border border-white/5 flex flex-col group hover:border-violet-500/40 transition">
-          <div class="relative aspect-[9/16] bg-slate-900 overflow-hidden">
-            ${r.thumbnailUrl ? `<img src="${r.thumbnailUrl}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" alt="Reel">` : `<div class="w-full h-full flex items-center justify-center text-slate-600"><i data-lucide="video" class="w-8 h-8"></i></div>`}
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-2.5">
-              <div class="flex items-center justify-between text-[11px] text-white font-semibold">
-                <span class="flex items-center gap-1"><i data-lucide="heart" class="w-3 h-3 text-rose-400"></i> ${r.likeCount || 0}</span>
-                <span class="flex items-center gap-1"><i data-lucide="message-circle" class="w-3 h-3 text-cyan-400"></i> ${r.commentsCount || 0}</span>
-              </div>
-            </div>
-          </div>
-          <div class="p-2.5 flex-1 flex flex-col justify-between space-y-1.5 bg-slate-900/60">
-            <p class="text-[10px] text-slate-300 line-clamp-2 leading-relaxed">${r.caption || 'Instagram Media'}</p>
-            ${r.permalink ? `<a href="${r.permalink}" target="_blank" class="text-[9px] text-violet-400 hover:text-violet-300 font-bold flex items-center gap-1"><span>View on IG</span><i data-lucide="external-link" class="w-2.5 h-2.5"></i></a>` : ''}
-          </div>
-        </div>
-      `).join('');
-      refreshIcons();
-    }
-
-    async function syncInstagramReels() {
-      if (!state.instagram.connected) {
-        return showNoticeModal('Instagram Not Connected', 'Please connect your Instagram account first using 1-Click Connect to sync your Reels and Posts.');
-      }
-      const btn = document.getElementById('btnSyncReels');
-      const text = document.getElementById('btnSyncReelsText');
-      btn.disabled = true;
-      text.innerText = 'Syncing from Meta...';
-
-      try {
-        const res = await apiFetch('/api/instagram/sync', { method: 'POST' });
-        const data = await res.json();
-        if (data.success) {
-          state.reels = data.reels || [];
-          renderReels(state.reels);
-          showToast(`Synced ${state.reels.length} posts & reels!`);
-        } else {
-          showToast(data.error || 'Failed to sync reels.', 'error');
-        }
-      } catch (e) {
-        showToast('Network error while syncing reels.', 'error');
-      } finally {
-        btn.disabled = false;
-        text.innerText = 'Sync Reels Now';
-        refreshIcons();
-      }
     }
 
     function updateInstagramUI() {
@@ -1181,6 +1793,7 @@
       const statStatus = document.getElementById('statIgStatus');
       const statFollowers = document.getElementById('statIgFollowers');
       const simUsername = document.getElementById('simHeaderUsername');
+      const simAvatar = document.getElementById('simHeaderAvatar');
 
       if (state.instagram.connected) {
         if (banner) banner.classList.add('hidden');
@@ -1195,7 +1808,7 @@
         }
         badge.innerHTML = `
           <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800 border border-white/10 text-xs">
-            <img src="${state.instagram.profilePic}" class="w-5 h-5 rounded-full object-cover border border-emerald-500" alt="Avatar">
+            <img src="${state.instagram.profilePic || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'}" class="w-5 h-5 rounded-full object-cover border border-emerald-500" alt="Avatar">
             <span class="font-bold text-white">${state.instagram.username}</span>
             <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">CONNECTED</span>
             <button onclick="revokeInstagramAccount()" title="Revoke Instagram Account & Pause All DMs" class="ml-1 text-slate-400 hover:text-rose-400 p-0.5 rounded hover:bg-rose-500/20 transition">
@@ -1205,10 +1818,11 @@
         `;
         statStatus.innerHTML = `
           <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span class="text-emerald-400">${state.instagram.username}</span>
+          <span class="text-emerald-400 font-bold">${state.instagram.username}</span>
         `;
         statFollowers.innerText = `${(state.instagram.followersCount || 0).toLocaleString()} Followers`;
         if (simUsername) simUsername.innerText = state.instagram.username;
+        if (simAvatar && state.instagram.profilePic) simAvatar.src = state.instagram.profilePic;
       } else {
         if (banner) banner.classList.remove('hidden');
         if (connBanner) connBanner.classList.add('hidden');
@@ -1222,13 +1836,41 @@
           <span class="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
           <span class="text-slate-400">Not Connected</span>
         `;
-        statFollowers.innerText = "Meta Graph API";
+        statFollowers.innerText = "Meta Graph API v21.0";
       }
       refreshIcons();
     }
 
+    async function syncInstagramReels() {
+      if (!state.instagram.connected) {
+        return showNoticeModal('Instagram Not Connected', 'Please connect your Instagram account first using 1-Click Connect to sync your Reels and Posts.');
+      }
+      const btn = document.getElementById('btnSyncReels');
+      const text = document.getElementById('btnSyncReelsText');
+      if (btn) btn.disabled = true;
+      if (text) text.innerText = 'Syncing...';
+
+      try {
+        const res = await apiFetch('/api/instagram/sync', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          state.reels = data.reels || [];
+          renderAllMediaViews();
+          showToast(`Synced ${state.reels.length} posts and reels!`);
+        } else {
+          showToast(data.error || 'Failed to sync media.', 'error');
+        }
+      } catch (e) {
+        showToast('Network error while syncing media.', 'error');
+      } finally {
+        if (btn) btn.disabled = false;
+        if (text) text.innerText = 'Sync Latest Media';
+        refreshIcons();
+      }
+    }
+
     async function revokeInstagramAccount() {
-      if (!confirm('Are you sure you want to revoke/disconnect this Instagram account? All active auto-DM rules will be PAUSED immediately.')) {
+      if (!confirm('Are you sure you want to revoke/disconnect this Instagram account? All active auto-DM rules will be paused.')) {
         return;
       }
       try {
@@ -1241,7 +1883,7 @@
           }
           updateInstagramUI();
           renderRules();
-          showToast('Instagram account revoked. All auto-DM rules paused.', 'error');
+          showToast('Instagram account disconnected. All automations paused.', 'error');
         } else {
           showToast(data.error || 'Failed to revoke account', 'error');
         }
@@ -1250,7 +1892,7 @@
       }
     }
 
-    // CONNECT INSTAGRAM MODAL
+    // Connect Modal
     function openConnectModal() {
       document.getElementById('connectModal').classList.remove('hidden');
       document.getElementById('connectErrorBox').classList.add('hidden');
@@ -1289,6 +1931,7 @@
           state.instagram = data.instagram;
           updateInstagramUI();
           closeConnectModal();
+          loadRealData();
           showToast(`Connected to ${data.instagram.username}!`);
         } else {
           errBox.innerText = data.error || 'Failed to connect account';
@@ -1304,114 +1947,1103 @@
       }
     }
 
-    // RULES RENDERING
-    function renderRules() {
+    // =========================================================================
+    // MEDIA RENDERING & SEPARATION (REELS VS POSTS)
+    // =========================================================================
+    function isReelMedia(item) {
+      return item.mediaType === 'VIDEO';
+    }
+
+    function renderAllMediaViews() {
+      const reels = state.reels || [];
+      const totalCount = reels.length;
+      const reelsCount = reels.filter(r => isReelMedia(r) && !r.isCollab).length;
+      const postsCount = reels.filter(r => !isReelMedia(r) && !r.isCollab).length;
+      const collabsCount = reels.filter(r => Boolean(r.isCollab)).length;
+
+      // Update counters
+      const bMedia = document.getElementById('mediaCountBadge');
+      if (bMedia) bMedia.innerText = totalCount;
+      const cAll = document.getElementById('mediaCountAll');
+      if (cAll) cAll.innerText = totalCount;
+      const cReels = document.getElementById('mediaCountReels');
+      if (cReels) cReels.innerText = reelsCount;
+      const cPosts = document.getElementById('mediaCountPosts');
+      if (cPosts) cPosts.innerText = postsCount;
+      const cCollabs = document.getElementById('mediaCountCollabs');
+      if (cCollabs) cCollabs.innerText = collabsCount;
+
+      renderDashboardMedia(reels.slice(0, 6));
+      renderFullMediaGrid(reels);
+      renderPickerMediaGrid(reels);
+    }
+
+    function setMediaFilter(filterType) {
+      currentMediaFilter = filterType;
+      document.querySelectorAll('#view-media button[id^="mediaTab-"]').forEach(btn => {
+        btn.className = "flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-semibold transition";
+      });
+      const activeBtn = document.getElementById(`mediaTab-${filterType}`);
+      if (activeBtn) {
+        activeBtn.className = "flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-violet-600 text-white text-xs font-semibold transition";
+      }
+
+      let filtered = state.reels || [];
+      if (filterType === 'reels') {
+        filtered = filtered.filter(r => isReelMedia(r) && !r.isCollab);
+      } else if (filterType === 'posts') {
+        filtered = filtered.filter(r => !isReelMedia(r) && !r.isCollab);
+      } else if (filterType === 'collabs') {
+        filtered = filtered.filter(r => Boolean(r.isCollab));
+      }
+      renderFullMediaGrid(filtered);
+    }
+
+    function searchMedia(term) {
+      const q = (term || '').trim().toLowerCase();
+      let filtered = state.reels || [];
+      if (currentMediaFilter === 'reels') filtered = filtered.filter(r => isReelMedia(r) && !r.isCollab);
+      else if (currentMediaFilter === 'posts') filtered = filtered.filter(r => !isReelMedia(r) && !r.isCollab);
+      else if (currentMediaFilter === 'collabs') filtered = filtered.filter(r => Boolean(r.isCollab));
+
+      if (q) {
+        filtered = filtered.filter(r => (r.caption || '').toLowerCase().includes(q));
+      }
+      renderFullMediaGrid(filtered);
+    }
+
+    function renderDashboardMedia(items) {
+      const container = document.getElementById('dashboardMediaContainer');
+      if (!container) return;
+      if (!items || !items.length) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-8 border border-dashed border-white/10 rounded-2xl space-y-2">
+            <i data-lucide="camera" class="w-6 h-6 text-slate-500 mx-auto"></i>
+            <div class="font-bold text-xs text-slate-300">No Synced Media Found</div>
+            <p class="text-[11px] text-slate-500">${state.instagram.connected ? 'Click "Sync Latest Media" to load your posts.' : 'Connect your Instagram account to view your Reels and Posts.'}</p>
+          </div>
+        `;
+        refreshIcons();
+        return;
+      }
+      container.innerHTML = items.map(m => createMediaCardHtml(m, true)).join('');
+      refreshIcons();
+    }
+
+    function renderFullMediaGrid(items) {
+      const container = document.getElementById('mediaFullContainer');
+      if (!container) return;
+      if (!items || !items.length) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-12 border border-dashed border-white/10 rounded-2xl space-y-2">
+            <i data-lucide="film" class="w-8 h-8 text-slate-600 mx-auto"></i>
+            <div class="font-bold text-sm text-slate-300">No Media Matches Your Filter</div>
+            <p class="text-xs text-slate-500">Try switching tabs or syncing fresh posts from your Instagram account.</p>
+          </div>
+        `;
+        refreshIcons();
+        return;
+      }
+      container.innerHTML = items.map(m => createMediaCardHtml(m, false)).join('');
+      refreshIcons();
+    }
+
+    function createMediaCardHtml(item, compact = false) {
+      const isReel = isReelMedia(item);
+      const isCarousel = item.mediaType === 'CAROUSEL_ALBUM';
+      const typeLabel = isReel ? 'REEL' : (isCarousel ? 'CAROUSEL' : 'POST');
+      const badgeGradient = isReel 
+        ? 'bg-gradient-to-r from-pink-500/20 to-rose-500/20 text-pink-400 border-pink-500/30' 
+        : (isCarousel ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-400 border-cyan-500/30' : 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30');
+
+      // Check if a rule targets this post
+      const attachedRule = (state.rules || []).find(r => r.targetPost === item.id);
+
+      return `
+        <div class="glass-card rounded-2xl overflow-hidden border border-white/5 flex flex-col group transition duration-300 hover:border-violet-500/40 hover:-translate-y-0.5">
+          <div class="relative ${isReel ? 'aspect-[9/16]' : 'aspect-square'} bg-slate-900 overflow-hidden">
+            ${item.thumbnailUrl || item.mediaUrl ? `<img src="${item.thumbnailUrl || item.mediaUrl}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="Media">` : `<div class="w-full h-full flex items-center justify-center text-slate-600"><i data-lucide="${isReel ? 'video' : 'image'}" class="w-8 h-8"></i></div>`}
+            
+            <!-- Type Pill Badge -->
+            <div class="absolute top-2 left-2 flex items-center gap-1">
+              ${item.isCollab ? `
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold border backdrop-blur-md bg-purple-950/80 text-purple-200 border-purple-500/50 flex items-center gap-1">
+                  🤝 COLLAB
+                </span>
+              ` : `
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold border backdrop-blur-md ${badgeGradient}">
+                  ${isReel ? '🎬 REEL' : (isCarousel ? '📸 CAROUSEL' : '🖼️ POST')}
+                </span>
+              `}
+            </div>
+
+            <!-- Active Automation Tag if attached -->
+            ${attachedRule ? `
+              <div class="absolute top-2 right-2">
+                <span class="px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-300 border border-emerald-500/50 text-[9px] font-bold backdrop-blur-md flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>ACTIVE</span>
+                </span>
+              </div>
+            ` : ''}
+
+            <!-- Bottom Stats -->
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-2.5">
+              <div class="flex items-center justify-between text-[11px] text-white font-semibold">
+                <span class="flex items-center gap-1"><i data-lucide="heart" class="w-3 h-3 text-rose-400"></i> ${(item.likeCount || 0).toLocaleString()}</span>
+                <span class="flex items-center gap-1"><i data-lucide="message-circle" class="w-3 h-3 text-cyan-400"></i> ${(item.commentsCount || 0).toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3 flex-1 flex flex-col justify-between space-y-2 bg-slate-900/60">
+            <p class="text-[11px] text-slate-300 line-clamp-2 leading-relaxed">${item.caption || 'Instagram Post'}</p>
+            
+            <div class="pt-1 flex items-center justify-between gap-2 border-t border-white/5">
+              ${item.permalink ? `
+                <a href="${item.permalink}" target="_blank" class="text-[10px] text-slate-400 hover:text-white flex items-center gap-1 font-semibold">
+                  <span>View</span>
+                  <i data-lucide="external-link" class="w-2.5 h-2.5"></i>
+                </a>
+              ` : '<span></span>'}
+
+              <button onclick="openNewRuleModal('${item.id}')" class="px-2.5 py-1 rounded-lg bg-violet-600/30 hover:bg-violet-600 text-violet-300 hover:text-white text-[10px] font-bold border border-violet-500/30 transition flex items-center gap-1">
+                <i data-lucide="zap" class="w-3 h-3 text-amber-400"></i>
+                <span>Automate</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // AUTOMATION RULES RENDERING (Studio & Dashboard)
+    // =========================================================================
+    function filterRules(status) {
+      currentRuleFilter = status;
+      document.querySelectorAll('#view-studio button[id^="ruleFilterBtn-"]').forEach(b => {
+        b.className = "px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-semibold transition";
+      });
+      const activeBtn = document.getElementById(`ruleFilterBtn-${status}`);
+      if (activeBtn) {
+        activeBtn.className = "px-3 py-1.5 rounded-xl bg-violet-600 text-white text-xs font-semibold transition";
+      }
+      renderRules();
+    }
+
+    function searchRules(term) {
+      const q = (term || '').trim().toLowerCase();
+      renderRules(q);
+    }
+
+    function renderRules(searchQuery = '') {
       const dbList = document.getElementById('dashboardRulesList');
       const studioGrid = document.getElementById('studioRulesContainer');
       const badge = document.getElementById('ruleCountBadge');
       if (badge) badge.innerText = state.rules.length;
       document.getElementById('statRealRules').innerText = state.rules.length;
 
-      if (!state.rules.length) {
-        if (dbList) {
-          dbList.innerHTML = `
-            <div class="text-center py-10 border border-dashed border-white/10 rounded-2xl space-y-2">
-              <i data-lucide="inbox" class="w-6 h-6 text-slate-500 mx-auto"></i>
-              <div class="font-bold text-xs text-slate-300">No Automation Rules Created Yet</div>
-              <p class="text-[11px] text-slate-500">Click below to add a keyword rule.</p>
-              <button onclick="openNewRuleModal()" class="px-3.5 py-1.5 rounded-lg bg-violet-600 text-white text-xs font-bold transition">+ Create Rule</button>
+      let filtered = state.rules || [];
+      if (currentRuleFilter === 'active') filtered = filtered.filter(r => r.status === 'active');
+      else if (currentRuleFilter === 'paused') filtered = filtered.filter(r => r.status === 'paused');
+
+      if (searchQuery) {
+        filtered = filtered.filter(r => 
+          (r.name || '').toLowerCase().includes(searchQuery) ||
+          (r.triggers || []).some(t => t.toLowerCase().includes(searchQuery))
+        );
+      }
+
+      if (!filtered.length) {
+        const emptyHtml = `
+          <div class="col-span-full text-center py-12 border border-dashed border-white/10 rounded-2xl space-y-3">
+            <div class="w-12 h-12 mx-auto rounded-2xl bg-slate-800 flex items-center justify-center text-slate-500">
+              <i data-lucide="inbox" class="w-6 h-6"></i>
             </div>
-          `;
-        }
-        if (studioGrid) {
-          studioGrid.innerHTML = `
-            <div class="col-span-full text-center py-16 space-y-2">
-              <i data-lucide="sliders" class="w-8 h-8 text-slate-600 mx-auto"></i>
-              <div class="font-bold text-sm text-slate-300">No Rules Found</div>
-              <p class="text-xs text-slate-500">Configure your first keyword automation rule.</p>
-            </div>
-          `;
-        }
+            <div class="font-bold text-sm text-slate-300">No Automation Rules Found</div>
+            <p class="text-xs text-slate-500 max-w-sm mx-auto">Create a rule with keywords like "LINK" or "PRICE" to automatically DM followers who comment on your Reels.</p>
+            <button onclick="openNewRuleModal()" class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition">
+              + Create First Automation Rule
+            </button>
+          </div>
+        `;
+        if (dbList) dbList.innerHTML = emptyHtml;
+        if (studioGrid) studioGrid.innerHTML = emptyHtml;
         refreshIcons();
         return;
       }
 
-      // Render Active Rules
-      const rulesHtml = state.rules.map(r => `
-        <div class="glass-card rounded-xl p-4 border border-white/5 flex items-center justify-between gap-4">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-violet-600/20 text-violet-400 flex items-center justify-center font-bold text-xs flex-shrink-0">
-              <i data-lucide="message-square" class="w-5 h-5"></i>
+      const cardsHtml = filtered.map(r => createRuleCardHtml(r)).join('');
+      if (dbList) dbList.innerHTML = filtered.slice(0, 4).map(r => createRuleCardHtml(r, true)).join('');
+      if (studioGrid) studioGrid.innerHTML = cardsHtml;
+      refreshIcons();
+    }
+
+    function createRuleCardHtml(r, isCompact = false) {
+      const isActive = r.status === 'active';
+      const targetLabel = r.targetPost === 'all_reels' 
+        ? '🎬 All Reels Only' 
+        : (r.targetPost === 'all_posts' ? '📸 All Posts/Carousels' : (r.targetPost === 'all' || !r.targetPost ? '🌐 All Posts & Reels' : `🎯 Specific Post (${r.targetPost.slice(-6)})`));
+      
+      const buttonsCount = Array.isArray(r.buttons) ? r.buttons.length : 0;
+      const triggers = r.matchType === 'any_comment' ? ['ANY COMMENT'] : (r.triggers || []);
+
+      return `
+        <div class="glass-card rounded-2xl p-5 border border-white/5 flex flex-col justify-between space-y-4 hover:border-violet-500/40 transition">
+          <div class="space-y-3">
+            <!-- Header Row -->
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-violet-600/20 text-violet-400 flex items-center justify-center font-bold text-xs flex-shrink-0 border border-violet-500/30">
+                  <i data-lucide="message-square" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-sm text-white">${r.name}</h4>
+                  <span class="text-[10px] text-slate-400 font-mono flex items-center gap-1 mt-0.5">
+                    <span>${targetLabel}</span>
+                  </span>
+                </div>
+              </div>
+              
+              <!-- Active Switch Badge -->
+              <button onclick="toggleRule('${r.id}')" class="px-2.5 py-1 rounded-full text-[10px] font-bold border flex items-center gap-1.5 transition ${isActive ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/30' : 'bg-slate-800 text-slate-500 border-white/10 hover:bg-slate-700'}">
+                <span class="w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}"></span>
+                <span>${isActive ? 'ACTIVE' : 'PAUSED'}</span>
+              </button>
             </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <h4 class="font-bold text-sm text-white">${r.name}</h4>
-                <span class="px-2 py-0.5 rounded-full ${r.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800 text-slate-500'} text-[10px] font-mono">${r.status.toUpperCase()}</span>
+
+            <!-- Trigger Keywords Chips -->
+            <div class="space-y-1">
+              <span class="text-[10px] text-slate-500 font-semibold uppercase">Trigger Keywords (${r.matchType || 'contains'}):</span>
+              <div class="flex flex-wrap gap-1.5 pt-0.5">
+                ${triggers.map(t => `<span class="px-2 py-0.5 rounded-lg bg-slate-900 border border-white/10 text-[10px] font-mono font-bold text-cyan-400">#${t}</span>`).join('')}
               </div>
-              <div class="flex flex-wrap gap-1 mt-1">
-                ${(r.triggers || []).map(t => `<span class="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-mono text-cyan-400">#${t}</span>`).join('')}
-              </div>
+            </div>
+
+            <!-- DM Excerpt & Button Badge -->
+            <div class="p-2.5 rounded-xl bg-black/40 border border-white/5 space-y-1.5 text-xs">
+              <p class="text-slate-300 text-[11px] line-clamp-2 leading-relaxed">"${r.dmMessage}"</p>
+              ${buttonsCount > 0 ? `
+                <div class="flex items-center gap-1.5 pt-1 border-t border-white/5 text-[10px] text-violet-300 font-bold">
+                  <i data-lucide="link" class="w-3 h-3 text-violet-400"></i>
+                  <span>${buttonsCount} Clean CTA Button${buttonsCount > 1 ? 's' : ''} Attached</span>
+                </div>
+              ` : ''}
             </div>
           </div>
-          <div class="flex items-center gap-2">
-            <button onclick="toggleRule('${r.id}')" class="px-3 py-1.5 rounded-lg bg-slate-800 text-xs text-slate-200">${r.status === 'active' ? 'Pause' : 'Activate'}</button>
-            <button onclick="deleteRule('${r.id}')" class="p-1.5 rounded-lg hover:bg-rose-500/20 text-slate-500 hover:text-rose-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+
+          <!-- Bottom Actions & Metrics -->
+          <div class="pt-2 border-t border-white/5 flex items-center justify-between gap-2 text-xs">
+            <div class="flex items-center gap-3 text-[11px] text-slate-400 font-mono">
+              <span>Triggered: <strong class="text-white">${r.stats?.triggered || 0}</strong></span>
+              <span>DMs: <strong class="text-emerald-400">${r.stats?.dmsSent || 0}</strong></span>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+              <button onclick="openEditRuleModal('${r.id}')" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Edit Rule">
+                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+              </button>
+              <button onclick="duplicateRule('${r.id}')" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Duplicate Rule">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              </button>
+              <button onclick="deleteRule('${r.id}')" class="p-1.5 rounded-lg hover:bg-rose-500/20 text-slate-500 hover:text-rose-400 transition" title="Delete Rule">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // AUTOMATION FLOW BUILDER (MODAL WORKFLOW)
+    // =========================================================================
+    function openNewRuleModal(preselectedMediaId = null) {
+      flowState.editingRuleId = null;
+      flowState.currentStep = 1;
+      flowState.matchType = 'contains';
+      flowState.triggerKeywords = ['LINK'];
+      flowState.excludeKeywords = [];
+      flowState.ctaButtons = [
+        { id: 'btn_1', label: 'Download Free Guide 📩', type: 'url', url: 'https://instagram.com' },
+        { id: 'btn_2', label: 'Explore More 🚀', type: 'quick_reply', url: 'follow me first' }
+      ];
+      flowState.secondReply = {
+        enabled: false,
+        triggerText: 'follow me first',
+        message: 'Awesome! Thanks for following. Here is your free PDF Guide: 👇',
+        mediaUrl: '',
+        fileName: '',
+        buttons: [{ label: 'Download PDF Guide 📄', url: '', type: 'pdf' }]
+      };
+      flowState.delaySeconds = 0;
+
+      document.getElementById('modalFlowTitle').innerText = 'Create Instagram Automation Flow';
+      document.getElementById('modalRuleName').value = '';
+      document.getElementById('modalRuleDmText').value = 'Hey {{name}}! Thank you for commenting on my post. Here is the link you requested:';
+      document.getElementById('modalRulePublicReply').value = 'Sent the link to your DMs! 🚀 Check your inbox! | Check your DMs! 📩 | Delivered to your inbox! ✨';
+
+      const secToggle = document.getElementById('modalSecondReplyToggle');
+      if (secToggle) secToggle.checked = false;
+      toggleSecondReplySection(false);
+      const secTriggerInput = document.getElementById('secReplyTriggerText');
+      if (secTriggerInput) secTriggerInput.value = 'follow me first';
+      const secMsgInput = document.getElementById('secReplyMessage');
+      if (secMsgInput) secMsgInput.value = 'Awesome! Thanks for following. Here is your free PDF Guide: 👇';
+      const secUrlInput = document.getElementById('secReplyMediaUrl');
+      if (secUrlInput) secUrlInput.value = '';
+      const secBtnLabel = document.getElementById('secReplyBtnLabel');
+      if (secBtnLabel) secBtnLabel.value = 'Download PDF Guide 📄';
+      const secStatus = document.getElementById('secReplyUploadStatus');
+      if (secStatus) secStatus.classList.add('hidden');
+
+      if (preselectedMediaId) {
+        selectFlowTarget('specific', preselectedMediaId);
+      } else {
+        selectFlowTarget('all');
+      }
+
+      renderKeywordChips();
+      renderCtaButtonInputs();
+      setFlowStep(1);
+      document.getElementById('ruleFlowModal').classList.remove('hidden');
+      refreshIcons();
+    }
+
+    function openEditRuleModal(ruleId) {
+      const rule = (state.rules || []).find(r => r.id === ruleId);
+      if (!rule) return;
+
+      flowState.editingRuleId = ruleId;
+      flowState.currentStep = 1;
+      flowState.matchType = rule.matchType || 'contains';
+      flowState.triggerKeywords = Array.isArray(rule.triggers) ? [...rule.triggers] : ['LINK'];
+      flowState.excludeKeywords = Array.isArray(rule.excludeTriggers) ? [...rule.excludeTriggers] : [];
+      flowState.ctaButtons = Array.isArray(rule.buttons) && rule.buttons.length
+        ? JSON.parse(JSON.stringify(rule.buttons)).map(b => ({
+            ...b,
+            type: b.type || (b.url && b.url.toLowerCase().endsWith('.pdf') ? 'pdf' : (b.url && (b.url.endsWith('.png') || b.url.endsWith('.jpg') || b.url.endsWith('.jpeg')) ? 'image' : (b.url && (b.url.startsWith('http://') || b.url.startsWith('https://')) ? 'url' : 'quick_reply')))
+          }))
+        : [{ label: 'Open Link 🌐', type: 'url', url: 'https://instagram.com' }];
+
+      flowState.secondReply = rule.secondReply ? JSON.parse(JSON.stringify(rule.secondReply)) : {
+        enabled: false,
+        triggerText: 'follow me first',
+        message: 'Awesome! Thanks for following. Here is your free PDF Guide: 👇',
+        mediaUrl: '',
+        fileName: '',
+        buttons: [{ label: 'Download PDF Guide 📄', url: '', type: 'pdf' }]
+      };
+      flowState.delaySeconds = rule.delaySeconds || 0;
+
+      document.getElementById('modalFlowTitle').innerText = `Edit Rule: ${rule.name}`;
+      document.getElementById('modalRuleName').value = rule.name || '';
+      document.getElementById('modalRuleDmText').value = rule.dmMessage || '';
+      document.getElementById('modalRulePublicReply').value = rule.publicReply || '';
+      document.getElementById('modalRuleExcludes').value = (rule.excludeTriggers || []).join(', ');
+
+      const secToggle = document.getElementById('modalSecondReplyToggle');
+      if (secToggle) secToggle.checked = Boolean(flowState.secondReply.enabled);
+      toggleSecondReplySection(Boolean(flowState.secondReply.enabled));
+      const secTriggerInput = document.getElementById('secReplyTriggerText');
+      if (secTriggerInput) secTriggerInput.value = flowState.secondReply.triggerText || 'follow me first';
+      const secMsgInput = document.getElementById('secReplyMessage');
+      if (secMsgInput) secMsgInput.value = flowState.secondReply.message || '';
+      const secUrlInput = document.getElementById('secReplyMediaUrl');
+      if (secUrlInput) secUrlInput.value = flowState.secondReply.mediaUrl || '';
+      const secBtnLabel = document.getElementById('secReplyBtnLabel');
+      if (secBtnLabel) secBtnLabel.value = flowState.secondReply.buttons?.[0]?.label || 'Download PDF Guide 📄';
+      const secStatus = document.getElementById('secReplyUploadStatus');
+      if (secStatus) {
+        if (flowState.secondReply.fileName) {
+          secStatus.classList.remove('hidden');
+          secStatus.innerHTML = `<i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span>Attached: ${flowState.secondReply.fileName}</span>`;
+        } else {
+          secStatus.classList.add('hidden');
+        }
+      }
+
+      if (rule.targetPost && rule.targetPost !== 'all' && rule.targetPost !== 'all_reels' && rule.targetPost !== 'all_posts') {
+        selectFlowTarget('specific', rule.targetPost);
+      } else {
+        selectFlowTarget(rule.targetPost || 'all');
+      }
+
+      setMatchType(flowState.matchType);
+      renderKeywordChips();
+      renderCtaButtonInputs();
+      setDelayTiming(flowState.delaySeconds);
+
+      setFlowStep(1);
+      document.getElementById('ruleFlowModal').classList.remove('hidden');
+      refreshIcons();
+    }
+
+    function closeRuleFlowModal() {
+      document.getElementById('ruleFlowModal').classList.add('hidden');
+    }
+
+    function setFlowStep(step) {
+      flowState.currentStep = step;
+
+      // Update Tab Indicators
+      for (let i = 1; i <= 4; i++) {
+        const tab = document.getElementById(`stepTab-${i}`);
+        const panel = document.getElementById(`flowStepPanel-${i}`);
+        const circle = tab ? tab.querySelector('span:first-child') : null;
+
+        if (i === step) {
+          if (panel) panel.classList.remove('hidden');
+          if (tab) {
+            tab.className = "step-nav-tab flex items-center gap-2 font-bold text-violet-400 transition";
+            if (circle) circle.className = "w-6 h-6 rounded-full bg-violet-600 text-white text-[10px] flex items-center justify-center font-bold shadow-md shadow-violet-600/30";
+          }
+        } else if (i < step) {
+          if (panel) panel.classList.add('hidden');
+          if (tab) {
+            tab.className = "step-nav-tab flex items-center gap-2 font-semibold text-emerald-400 transition";
+            if (circle) circle.className = "w-6 h-6 rounded-full bg-emerald-600/30 text-emerald-400 text-[10px] flex items-center justify-center font-bold border border-emerald-500/40";
+          }
+        } else {
+          if (panel) panel.classList.add('hidden');
+          if (tab) {
+            tab.className = "step-nav-tab flex items-center gap-2 font-semibold text-slate-500 hover:text-slate-300 transition";
+            if (circle) circle.className = "w-6 h-6 rounded-full bg-slate-800 text-slate-400 text-[10px] flex items-center justify-center";
+          }
+        }
+      }
+
+      // Update Bottom Buttons
+      const btnPrev = document.getElementById('btnFlowPrev');
+      const btnNext = document.getElementById('btnFlowNext');
+      const btnSubmit = document.getElementById('btnFlowSubmit');
+
+      if (step === 1) {
+        btnPrev.classList.add('hidden');
+        btnNext.classList.remove('hidden');
+        btnSubmit.classList.add('hidden');
+      } else if (step === 4) {
+        btnPrev.classList.remove('hidden');
+        btnNext.classList.add('hidden');
+        btnSubmit.classList.remove('hidden');
+        updateReviewPanel();
+      } else {
+        btnPrev.classList.remove('hidden');
+        btnNext.classList.remove('hidden');
+        btnSubmit.classList.add('hidden');
+      }
+
+      refreshIcons();
+    }
+
+    function nextFlowStep() {
+      if (flowState.currentStep === 1) {
+        if (flowState.targetType === 'specific' && !flowState.selectedMediaId) {
+          return showToast('Please select a specific post from the picker grid below.', 'error');
+        }
+      } else if (flowState.currentStep === 2) {
+        const name = document.getElementById('modalRuleName').value.trim();
+        if (!name) return showToast('Please enter an Automation Rule Name', 'error');
+        if (flowState.matchType !== 'any_comment' && (!flowState.triggerKeywords || !flowState.triggerKeywords.length)) {
+          return showToast('Please add at least one trigger keyword (e.g. LINK)', 'error');
+        }
+      } else if (flowState.currentStep === 3) {
+        const dm = document.getElementById('modalRuleDmText').value.trim();
+        if (!dm) return showToast('Direct Message Content is required', 'error');
+      }
+      setFlowStep(flowState.currentStep + 1);
+    }
+
+    function prevFlowStep() {
+      if (flowState.currentStep > 1) {
+        setFlowStep(flowState.currentStep - 1);
+      }
+    }
+
+    // Step 1: Target Selector Logic
+    function selectFlowTarget(targetType, mediaId = null) {
+      flowState.targetType = targetType;
+      
+      const cards = ['all', 'all_reels', 'all_posts', 'specific'];
+      cards.forEach(c => {
+        const card = document.getElementById(`targetCard-${c}`);
+        const radio = card ? card.querySelector('.target-radio') : null;
+        if (c === targetType) {
+          if (card) card.className = "target-card p-4 rounded-2xl border-2 border-violet-500 bg-violet-600/10 cursor-pointer transition flex flex-col justify-between space-y-3";
+          if (radio) radio.innerHTML = '<i data-lucide="check" class="w-3 h-3 text-white"></i>';
+          if (radio) radio.className = "target-radio w-5 h-5 rounded-full border-2 border-violet-500 bg-violet-600 flex items-center justify-center";
+        } else {
+          if (card) card.className = "target-card p-4 rounded-2xl border-2 border-white/5 bg-slate-900/60 hover:border-violet-500/40 cursor-pointer transition flex flex-col justify-between space-y-3";
+          if (radio) radio.innerHTML = '';
+          if (radio) radio.className = "target-radio w-5 h-5 rounded-full border-2 border-white/20 flex items-center justify-center";
+        }
+      });
+
+      const pickerBox = document.getElementById('flowSpecificMediaPicker');
+      if (targetType === 'specific') {
+        if (pickerBox) pickerBox.classList.remove('hidden');
+        if (mediaId) {
+          highlightPickerMedia(mediaId);
+        }
+      } else {
+        if (pickerBox) pickerBox.classList.add('hidden');
+        flowState.selectedMediaId = null;
+        flowState.selectedMediaItem = null;
+      }
+      refreshIcons();
+    }
+
+    function renderPickerMediaGrid(items) {
+      const grid = document.getElementById('pickerMediaGrid');
+      if (!grid) return;
+      if (!items || !items.length) {
+        grid.innerHTML = `<div class="col-span-full text-center py-4 text-xs text-slate-500">No media available. Connect Instagram or sync media first.</div>`;
+        return;
+      }
+      grid.innerHTML = items.map(m => `
+        <div onclick="highlightPickerMedia('${m.id}')" id="pickerThumb-${m.id}" class="picker-thumb relative aspect-square rounded-xl overflow-hidden border-2 border-white/10 hover:border-violet-400 cursor-pointer transition bg-slate-900 group">
+          <img src="${m.thumbnailUrl || m.mediaUrl || ''}" class="w-full h-full object-cover">
+          <div class="absolute bottom-1 right-1 text-[8px] px-1 py-0.2 rounded bg-black/70 font-mono text-white font-bold">
+            ${isReelMedia(m) ? 'REEL' : 'POST'}
+          </div>
+          <div class="picker-check hidden absolute inset-0 bg-violet-600/40 border-2 border-violet-500 rounded-xl flex items-center justify-center text-white">
+            <i data-lucide="check" class="w-5 h-5"></i>
           </div>
         </div>
       `).join('');
-
-      if (dbList) dbList.innerHTML = rulesHtml;
-      if (studioGrid) studioGrid.innerHTML = rulesHtml;
       refreshIcons();
     }
 
-    function openNewRuleModal() {
-      document.getElementById('ruleModal').classList.remove('hidden');
+    function filterPickerMedia(type) {
+      document.querySelectorAll('#flowSpecificMediaPicker button[id^="pickerTab-"]').forEach(b => b.className = "px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 text-[10px] font-semibold");
+      const btn = document.getElementById(`pickerTab-${type}`);
+      if (btn) btn.className = "px-2.5 py-1 rounded-lg bg-violet-600 text-white text-[10px] font-semibold";
+
+      let filtered = state.reels || [];
+      if (type === 'reels') filtered = filtered.filter(r => isReelMedia(r));
+      else if (type === 'posts') filtered = filtered.filter(r => !isReelMedia(r));
+      renderPickerMediaGrid(filtered);
+      if (flowState.selectedMediaId) highlightPickerMedia(flowState.selectedMediaId);
+    }
+
+    function highlightPickerMedia(id) {
+      flowState.selectedMediaId = id;
+      flowState.selectedMediaItem = (state.reels || []).find(r => r.id === id) || null;
+
+      document.querySelectorAll('.picker-thumb').forEach(el => {
+        el.classList.remove('border-violet-500', 'ring-2', 'ring-violet-500');
+        const check = el.querySelector('.picker-check');
+        if (check) check.classList.add('hidden');
+      });
+
+      const selectedEl = document.getElementById(`pickerThumb-${id}`);
+      if (selectedEl) {
+        selectedEl.classList.add('border-violet-500', 'ring-2', 'ring-violet-500');
+        const check = selectedEl.querySelector('.picker-check');
+        if (check) check.classList.remove('hidden');
+      }
+
+      const label = document.getElementById('selectedMediaLabel');
+      if (label && flowState.selectedMediaItem) {
+        label.innerText = `${isReelMedia(flowState.selectedMediaItem) ? 'Reel' : 'Post'}: "${(flowState.selectedMediaItem.caption || '').slice(0, 24)}..."`;
+      }
       refreshIcons();
     }
-    function closeRuleModal() {
-      document.getElementById('ruleModal').classList.add('hidden');
+
+    // Step 2: Keywords & Match Type
+    function setMatchType(type) {
+      flowState.matchType = type;
+      const types = ['contains', 'exact', 'any_comment'];
+      types.forEach(t => {
+        const card = document.getElementById(`matchCard-${t}`);
+        if (t === type) {
+          if (card) card.className = "p-3 rounded-xl border-2 border-violet-500 bg-violet-600/10 cursor-pointer transition";
+        } else {
+          if (card) card.className = "p-3 rounded-xl border-2 border-white/5 bg-slate-900/60 cursor-pointer transition";
+        }
+      });
+
+      const kwBox = document.getElementById('keywordsConfigBox');
+      if (type === 'any_comment') {
+        if (kwBox) kwBox.classList.add('opacity-40', 'pointer-events-none');
+      } else {
+        if (kwBox) kwBox.classList.remove('opacity-40', 'pointer-events-none');
+      }
+      refreshIcons();
     }
 
-    async function submitSaveRule() {
-      const name = document.getElementById('modalRuleName').value.trim();
-      const triggersRaw = document.getElementById('modalRuleTriggers').value.trim();
-      const publicReply = document.getElementById('modalRulePublicReply').value.trim();
-      const dmText = document.getElementById('modalRuleDmText').value.trim();
-      const btnLabel = document.getElementById('modalBtnLabel').value.trim();
-      const btnUrl = document.getElementById('modalBtnUrl').value.trim();
+    function handleKeywordInputKey(e) {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        const val = e.target.value.trim().toUpperCase().replace(/,/g, '');
+        if (val) {
+          addKeywordChip(val);
+          e.target.value = '';
+        }
+      }
+    }
 
-      if (!name || !triggersRaw) return showToast('Rule Name and Trigger Keywords are required.', 'error');
+    function addKeywordChip(keyword) {
+      const clean = keyword.trim().toUpperCase();
+      if (!clean) return;
+      if (!flowState.triggerKeywords.includes(clean)) {
+        flowState.triggerKeywords.push(clean);
+        renderKeywordChips();
+      }
+    }
 
-      const triggers = triggersRaw.split(',').map(t => t.trim().toUpperCase()).filter(Boolean);
-      const buttons = btnLabel ? [{ label: btnLabel, url: btnUrl || 'https://example.com' }] : [];
+    function removeKeywordChip(keyword) {
+      flowState.triggerKeywords = flowState.triggerKeywords.filter(k => k !== keyword);
+      renderKeywordChips();
+    }
 
-      const newRule = {
-        name,
-        triggers,
-        publicReply: publicReply || 'Sent the link to your DMs! 🚀',
-        dmMessage: dmText || 'Hey {{name}}! Here is your link:',
-        buttons,
-        status: 'active'
+    function renderKeywordChips() {
+      const box = document.getElementById('keywordChipsBox');
+      const input = document.getElementById('keywordTagInput');
+      if (!box || !input) return;
+
+      box.innerHTML = flowState.triggerKeywords.map(k => `
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-violet-600/20 text-cyan-300 border border-violet-500/30 text-xs font-mono font-bold">
+          <span>#${k}</span>
+          <button type="button" onclick="removeKeywordChip('${k}')" class="text-slate-400 hover:text-white transition">
+            <i data-lucide="x" class="w-3 h-3"></i>
+          </button>
+        </span>
+      `).join('') + `<input type="text" id="keywordTagInput" onkeydown="handleKeywordInputKey(event)" placeholder="Type keyword + Enter..." class="flex-1 bg-transparent text-xs text-white focus:outline-none min-w-[140px] p-1 font-mono">`;
+      refreshIcons();
+    }
+
+    // Step 3: DM & CTA Buttons
+    function insertToken(token) {
+      const textarea = document.getElementById('modalRuleDmText');
+      if (!textarea) return;
+      const start = textarea.selectionStart || textarea.value.length;
+      const end = textarea.selectionEnd || textarea.value.length;
+      textarea.value = textarea.value.substring(0, start) + token + textarea.value.substring(end);
+      textarea.focus();
+    }
+
+    function addCtaButtonField() {
+      if (flowState.ctaButtons.length >= 3) {
+        return showToast('Maximum 3 CTA buttons allowed per Direct Message', 'error');
+      }
+      flowState.ctaButtons.push({
+        id: `btn_${Date.now()}`,
+        label: 'Explore More 🚀',
+        type: 'quick_reply',
+        url: 'follow me first',
+        fileName: ''
+      });
+      renderCtaButtonInputs();
+    }
+
+    function removeCtaButtonField(index) {
+      flowState.ctaButtons.splice(index, 1);
+      renderCtaButtonInputs();
+    }
+
+    function updateCtaButton(index, field, value) {
+      if (flowState.ctaButtons[index]) {
+        flowState.ctaButtons[index][field] = value;
+      }
+    }
+
+    function setCtaButtonType(index, type) {
+      if (!flowState.ctaButtons[index]) return;
+      flowState.ctaButtons[index].type = type;
+      if (type === 'pdf') {
+        if (!flowState.ctaButtons[index].label || flowState.ctaButtons[index].label.includes('Explore') || flowState.ctaButtons[index].label.includes('Open')) {
+          flowState.ctaButtons[index].label = 'Download Free Guide 📄';
+        }
+      } else if (type === 'image') {
+        if (!flowState.ctaButtons[index].label || flowState.ctaButtons[index].label.includes('Explore') || flowState.ctaButtons[index].label.includes('Download')) {
+          flowState.ctaButtons[index].label = 'View Infographic 🖼️';
+        }
+      } else if (type === 'quick_reply') {
+        if (!flowState.ctaButtons[index].label || flowState.ctaButtons[index].label.includes('Download')) {
+          flowState.ctaButtons[index].label = 'Explore More 🚀';
+        }
+        if (!flowState.ctaButtons[index].url || flowState.ctaButtons[index].url.startsWith('http')) {
+          flowState.ctaButtons[index].url = 'follow me first';
+        }
+      } else if (type === 'url') {
+        if (!flowState.ctaButtons[index].url || !flowState.ctaButtons[index].url.startsWith('http')) {
+          flowState.ctaButtons[index].url = 'https://instagram.com';
+        }
+      }
+      renderCtaButtonInputs();
+    }
+
+    async function uploadButtonDeliverable(event, idx) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function() {
+        try {
+          showToast(`Uploading ${file.name}...`, 'info');
+          const res = await apiFetch('/api/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fileName: file.name, fileData: reader.result })
+          });
+          const data = await res.json();
+          if (data.success) {
+            flowState.ctaButtons[idx].url = data.url;
+            flowState.ctaButtons[idx].fileName = data.fileName;
+            flowState.ctaButtons[idx].fileSize = data.fileSize;
+            if (data.type === 'pdf') flowState.ctaButtons[idx].type = 'pdf';
+            else if (data.type === 'image') flowState.ctaButtons[idx].type = 'image';
+            renderCtaButtonInputs();
+            showToast(`Uploaded: ${data.fileName} (${data.fileSize})!`);
+          } else {
+            showToast(data.error || 'Upload failed', 'error');
+          }
+        } catch (e) {
+          showToast('File upload failed: ' + e.message, 'error');
+        }
       };
+      reader.readAsDataURL(file);
+    }
+
+    function toggleSecondReplySection(enabled) {
+      flowState.secondReply = flowState.secondReply || {};
+      flowState.secondReply.enabled = enabled;
+      const c = document.getElementById('secondReplyConfigContainer');
+      if (c) {
+        if (enabled) c.classList.remove('hidden');
+        else c.classList.add('hidden');
+      }
+      refreshIcons();
+    }
+
+    async function uploadSecondReplyDeliverable(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function() {
+        try {
+          showToast(`Uploading ${file.name}...`, 'info');
+          const res = await apiFetch('/api/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fileName: file.name, fileData: reader.result })
+          });
+          const data = await res.json();
+          if (data.success) {
+            document.getElementById('secReplyMediaUrl').value = data.url;
+            flowState.secondReply = flowState.secondReply || {};
+            flowState.secondReply.mediaUrl = data.url;
+            flowState.secondReply.fileName = data.fileName;
+            flowState.secondReply.fileSize = data.fileSize;
+            const statusEl = document.getElementById('secReplyUploadStatus');
+            if (statusEl) {
+              statusEl.classList.remove('hidden');
+              statusEl.innerHTML = `<i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span>Attached: ${data.fileName} (${data.fileSize})</span>`;
+              refreshIcons();
+            }
+            showToast(`Uploaded: ${data.fileName} (${data.fileSize})!`);
+          } else {
+            showToast(data.error || 'Upload failed', 'error');
+          }
+        } catch (e) {
+          showToast('File upload failed: ' + e.message, 'error');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function renderCtaButtonInputs() {
+      const container = document.getElementById('ctaButtonsList');
+      if (!container) return;
+
+      if (!flowState.ctaButtons.length) {
+        container.innerHTML = `
+          <div class="text-center py-4 border border-dashed border-white/10 rounded-2xl text-slate-500 text-xs">
+            No action buttons attached. Click "+ Add Button" to attach a Web Link, PDF, Image, or Quick Reply trigger.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = flowState.ctaButtons.map((btn, idx) => {
+        const type = btn.type || (btn.url && btn.url.toLowerCase().endsWith('.pdf') ? 'pdf' : (btn.url && (btn.url.endsWith('.png') || btn.url.endsWith('.jpg') || btn.url.endsWith('.jpeg')) ? 'image' : (btn.url && (btn.url.startsWith('http://') || btn.url.startsWith('https://')) ? 'url' : 'quick_reply')));
+        btn.type = type;
+
+        let placeholder = 'https://instagram.com';
+        let targetLabel = 'Target Web Link (URL)';
+        if (type === 'pdf') {
+          placeholder = 'PDF download link or click Upload 📄';
+          targetLabel = 'PDF File / Document Link';
+        } else if (type === 'image') {
+          placeholder = 'Image link or click Upload 🖼️';
+          targetLabel = 'Image File / Infographic Link';
+        } else if (type === 'quick_reply') {
+          placeholder = 'follow me first (matches 2nd reply trigger)';
+          targetLabel = 'Quick Reply Text (Triggers 2nd Reply)';
+        }
+
+        return `
+          <div class="p-3.5 rounded-2xl bg-black/50 border border-white/10 space-y-2.5 shadow-sm">
+            <!-- Row 1: Type Selection Pills + Delete -->
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <button type="button" onclick="setCtaButtonType(${idx}, 'url')" class="px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 transition ${type === 'url' ? 'bg-violet-600 text-white shadow-sm' : 'bg-slate-800 text-slate-400 hover:text-white'}">
+                  <i data-lucide="link" class="w-3 h-3"></i> 🔗 Web Link
+                </button>
+                <button type="button" onclick="setCtaButtonType(${idx}, 'pdf')" class="px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 transition ${type === 'pdf' ? 'bg-rose-600 text-white shadow-sm' : 'bg-slate-800 text-slate-400 hover:text-white'}">
+                  <i data-lucide="file-text" class="w-3 h-3"></i> 📄 PDF Doc
+                </button>
+                <button type="button" onclick="setCtaButtonType(${idx}, 'image')" class="px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 transition ${type === 'image' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-800 text-slate-400 hover:text-white'}">
+                  <i data-lucide="image" class="w-3 h-3"></i> 🖼️ Image
+                </button>
+                <button type="button" onclick="setCtaButtonType(${idx}, 'quick_reply')" class="px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 transition ${type === 'quick_reply' ? 'bg-cyan-600 text-white shadow-sm' : 'bg-slate-800 text-slate-400 hover:text-white'}">
+                  <i data-lucide="message-square" class="w-3 h-3"></i> 💬 Quick Reply (2nd Reply)
+                </button>
+              </div>
+
+              <button type="button" onclick="removeCtaButtonField(${idx})" class="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition" title="Delete Button">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+
+            <!-- Row 2: Inputs -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label class="text-[10px] text-slate-400 font-semibold mb-1 block">Button Label (Visible in DM)</label>
+                <input type="text" value="${btn.label || ''}" oninput="updateCtaButton(${idx}, 'label', this.value)" placeholder="e.g. Download Free Guide 📩" class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500 font-semibold">
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400 font-semibold mb-1 block">${targetLabel}</label>
+                <div class="flex items-center gap-1.5">
+                  <input type="text" value="${btn.url || ''}" oninput="updateCtaButton(${idx}, 'url', this.value)" placeholder="${placeholder}" class="flex-1 bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500 font-mono">
+                  ${(type === 'pdf' || type === 'image') ? `
+                    <label class="px-2.5 py-2 rounded-xl bg-violet-600/30 hover:bg-violet-600/40 text-violet-300 border border-violet-500/40 text-xs font-semibold cursor-pointer flex items-center gap-1 flex-shrink-0 transition">
+                      <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                      <span>Upload</span>
+                      <input type="file" accept="${type === 'pdf' ? '.pdf' : 'image/*'}" class="hidden" onchange="uploadButtonDeliverable(event, ${idx})">
+                    </label>
+                  ` : ''}
+                </div>
+                ${btn.fileName ? `
+                  <div class="mt-1 flex items-center gap-1 text-[10px] text-emerald-400">
+                    <i data-lucide="check-circle" class="w-3 h-3"></i>
+                    <span>Attached: ${btn.fileName} (${btn.fileSize || 'ready'})</span>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      refreshIcons();
+    }
+
+    function setDelayTiming(seconds) {
+      flowState.delaySeconds = seconds;
+      [0, 15, 30].forEach(s => {
+        const b = document.getElementById(`delayBtn-${s}`);
+        if (b) {
+          if (s === seconds) b.className = "py-2 px-3 rounded-xl bg-violet-600 text-white font-semibold text-xs transition";
+          else b.className = "py-2 px-3 rounded-xl bg-slate-800 text-slate-400 hover:text-white font-semibold text-xs transition";
+        }
+      });
+    }
+
+    // Step 4: Review Panel
+    function updateReviewPanel() {
+      const name = document.getElementById('modalRuleName').value.trim();
+      const dm = document.getElementById('modalRuleDmText').value.trim();
+      const publicReply = document.getElementById('modalRulePublicReply').value.trim();
+
+      document.getElementById('reviewRuleName').innerText = name || 'Untitled Flow';
+      
+      let targetText = 'All Reels & Posts';
+      if (flowState.targetType === 'all_reels') targetText = '🎬 All Video Reels Only';
+      else if (flowState.targetType === 'all_posts') targetText = '📸 All Posts & Carousels';
+      else if (flowState.targetType === 'specific') {
+        targetText = `🎯 Specific Post: ${flowState.selectedMediaItem ? (flowState.selectedMediaItem.caption || '').slice(0, 30) : (flowState.selectedMediaId || '')}`;
+      }
+      document.getElementById('reviewTargetMedia').innerText = targetText;
+
+      const triggersList = document.getElementById('reviewTriggersList');
+      if (flowState.matchType === 'any_comment') {
+        triggersList.innerHTML = `<span class="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-bold font-mono text-[10px]">ANY COMMENT (NO KEYWORD)</span>`;
+      } else {
+        triggersList.innerHTML = flowState.triggerKeywords.map(k => `
+          <span class="px-2 py-0.5 rounded-lg bg-slate-800 text-cyan-400 font-bold font-mono text-[10px]">#${k}</span>
+        `).join('');
+      }
+
+      document.getElementById('reviewPublicReply').innerText = publicReply || 'Sent you the link in your DMs! 🚀';
+      document.getElementById('reviewButtonsCount').innerText = `${flowState.ctaButtons.length} Button${flowState.ctaButtons.length === 1 ? '' : 's'}`;
+
+      if (state.instagram.connected) {
+        document.getElementById('reviewCreatorUsername').innerText = state.instagram.username;
+        if (state.instagram.profilePic) document.getElementById('reviewCreatorAvatar').src = state.instagram.profilePic;
+      }
+
+      document.getElementById('reviewDmMessage').innerText = dm.replace(/\{\{name\}\}/g, 'Sarah');
+
+      // Render Clean Professional Buttons in Review Mockup
+      const btnContainer = document.getElementById('reviewDmButtonsContainer');
+      if (flowState.ctaButtons && flowState.ctaButtons.length) {
+        btnContainer.innerHTML = flowState.ctaButtons.map(b => {
+          let badge = '<span class="text-[9px] bg-black/40 text-violet-200 px-1.5 py-0.5 rounded font-mono">Link</span>';
+          let icon = 'external-link';
+          let bgClass = 'bg-gradient-to-r from-violet-600 to-indigo-600';
+
+          if (b.type === 'pdf') {
+            badge = '<span class="text-[9px] bg-black/40 text-rose-200 px-1.5 py-0.5 rounded font-mono font-bold">PDF Doc</span>';
+            icon = 'file-text';
+            bgClass = 'bg-gradient-to-r from-rose-600 to-pink-600';
+          } else if (b.type === 'image') {
+            badge = '<span class="text-[9px] bg-black/40 text-emerald-200 px-1.5 py-0.5 rounded font-mono font-bold">Image</span>';
+            icon = 'image';
+            bgClass = 'bg-gradient-to-r from-emerald-600 to-teal-600';
+          } else if (b.type === 'quick_reply') {
+            badge = '<span class="text-[9px] bg-black/40 text-cyan-200 px-1.5 py-0.5 rounded font-mono font-bold">Quick Reply (2nd DM)</span>';
+            icon = 'message-square';
+            bgClass = 'bg-gradient-to-r from-cyan-600 to-blue-600';
+          }
+
+          return `
+            <div class="${bgClass} w-full py-2.5 px-3 rounded-2xl text-white font-bold text-xs flex items-center justify-between shadow-md">
+              <div class="flex items-center gap-2">
+                <i data-lucide="${icon}" class="w-3.5 h-3.5 opacity-90"></i>
+                <span>${b.label || 'Action Button'}</span>
+              </div>
+              ${badge}
+            </div>
+          `;
+        }).join('');
+      } else {
+        btnContainer.innerHTML = '';
+      }
+
+      // Check if Second Reply preview should be displayed in Review panel
+      const secEnabled = document.getElementById('modalSecondReplyToggle')?.checked;
+      const secPreview = document.getElementById('reviewSecondReplyPreview');
+      if (secEnabled) {
+        const trigger = document.getElementById('secReplyTriggerText')?.value || 'follow me first';
+        const msg = document.getElementById('secReplyMessage')?.value || 'Awesome! Thanks for following. Here is your free PDF Guide: 👇';
+        const btnLabel = document.getElementById('secReplyBtnLabel')?.value || 'Download PDF Guide 📄';
+        if (secPreview) {
+          secPreview.classList.remove('hidden');
+          secPreview.innerHTML = `
+            <!-- Follower Trigger reply -->
+            <div class="flex justify-end pt-1">
+              <div class="px-3 py-1.5 rounded-2xl bg-violet-600 text-white text-[10px] font-semibold flex items-center gap-1 shadow-md">
+                <span>${trigger}</span>
+                <i data-lucide="check-check" class="w-3 h-3 text-cyan-200"></i>
+              </div>
+            </div>
+            <!-- Creator 2nd DM Delivery -->
+            <div class="p-3 rounded-2xl bg-cyan-950/40 border border-cyan-500/30 text-slate-200 text-xs leading-relaxed space-y-2">
+              <div class="flex items-center gap-1 text-[9px] font-bold text-cyan-400 uppercase tracking-wider">
+                <i data-lucide="zap" class="w-3 h-3"></i>
+                <span>Second Reply (2-Step Follow-Up DM)</span>
+              </div>
+              <p class="whitespace-pre-line text-[11px]">${msg.replace(/\{\{name\}\}/g, 'Sarah')}</p>
+              <div class="bg-gradient-to-r from-cyan-500 to-violet-600 w-full py-2 px-3 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md">
+                <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+                <span>${btnLabel}</span>
+              </div>
+            </div>
+          `;
+        }
+      } else if (secPreview) {
+        secPreview.classList.add('hidden');
+        secPreview.innerHTML = '';
+      }
+      refreshIcons();
+    }
+
+    // Submit & Save Flow Rule
+    async function submitSaveFlowRule() {
+      const name = document.getElementById('modalRuleName').value.trim();
+      const dmText = document.getElementById('modalRuleDmText').value.trim();
+      const publicReply = document.getElementById('modalRulePublicReply').value.trim();
+      const excludesRaw = document.getElementById('modalRuleExcludes').value.trim();
+      const btn = document.getElementById('btnFlowSubmit');
+
+      if (!name) return showToast('Please enter an Automation Rule Name.', 'error');
+      if (!dmText) return showToast('Direct Message text is required.', 'error');
+
+      const excludeTriggers = excludesRaw.split(',').map(e => e.trim().toUpperCase()).filter(Boolean);
+      const cleanButtons = (flowState.ctaButtons || []).filter(b => b.label && (b.url || b.type === 'quick_reply'));
+
+      const secEnabled = document.getElementById('modalSecondReplyToggle')?.checked || false;
+      const secTrigger = document.getElementById('secReplyTriggerText')?.value.trim() || '';
+      const secMsg = document.getElementById('secReplyMessage')?.value.trim() || '';
+      const secMediaUrl = document.getElementById('secReplyMediaUrl')?.value.trim() || '';
+      const secBtnLabel = document.getElementById('secReplyBtnLabel')?.value.trim() || '';
+
+      const secondReplyPayload = {
+        enabled: secEnabled,
+        triggerText: secTrigger,
+        message: secMsg,
+        mediaUrl: secMediaUrl,
+        fileName: flowState.secondReply?.fileName || '',
+        buttons: secBtnLabel ? [{
+          label: secBtnLabel,
+          url: secMediaUrl,
+          type: secMediaUrl.toLowerCase().endsWith('.pdf') ? 'pdf' : (secMediaUrl.match(/\.(png|jpg|jpeg|webp)$/i) ? 'image' : 'url')
+        }] : []
+      };
+
+      const targetPost = flowState.targetType === 'specific' ? flowState.selectedMediaId : flowState.targetType;
+
+      const rulePayload = {
+        id: flowState.editingRuleId || `rule_${Date.now()}`,
+        name,
+        status: 'active',
+        matchType: flowState.matchType,
+        triggers: flowState.triggerKeywords,
+        excludeTriggers,
+        targetPost: targetPost || 'all',
+        targetPostCaption: flowState.selectedMediaItem ? flowState.selectedMediaItem.caption : '',
+        targetPostThumbnail: flowState.selectedMediaItem ? flowState.selectedMediaItem.thumbnailUrl : '',
+        publicReply: publicReply || 'Sent to your DMs! 🚀',
+        dmMessage: dmText,
+        buttons: cleanButtons,
+        secondReply: secondReplyPayload,
+        delaySeconds: flowState.delaySeconds || 0
+      };
+
+      btn.disabled = true;
+      btn.innerText = 'Saving Automation...';
 
       try {
         const res = await apiFetch('/api/rules', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newRule)
+          body: JSON.stringify(rulePayload)
         });
         const data = await res.json();
         if (data.success) {
-          state.rules.unshift(data.rule);
+          if (flowState.editingRuleId) {
+            const idx = state.rules.findIndex(r => r.id === flowState.editingRuleId);
+            if (idx >= 0) state.rules[idx] = data.rule;
+            showToast(`Automation "${name}" updated!`);
+          } else {
+            state.rules.unshift(data.rule);
+            showToast(`Automation "${name}" activated!`);
+          }
           renderRules();
-          closeRuleModal();
-          showToast(`Rule "${name}" created!`);
+          renderAllMediaViews();
+          closeRuleFlowModal();
         } else {
-          showToast(data.error || 'Failed to save rule', 'error');
+          showToast(data.error || 'Failed to save automation rule.', 'error');
         }
-      } catch (e) {
-        showToast('Could not save rule. Please try again.', 'error');
+      } catch (err) {
+        showToast('Network error while saving rule.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i><span>Save & Activate Automation</span>';
+        refreshIcons();
       }
     }
 
@@ -1427,21 +3059,49 @@
           const r = state.rules.find(x => x.id === id);
           if (r) r.status = data.rule.status;
           renderRules();
+          showToast(`Rule is now ${data.rule.status.toUpperCase()}`);
         }
       } catch (e) {}
     }
 
+    function duplicateRule(id) {
+      const orig = state.rules.find(r => r.id === id);
+      if (!orig) return;
+      openNewRuleModal();
+      document.getElementById('modalRuleName').value = `${orig.name} (Copy)`;
+      document.getElementById('modalRuleDmText').value = orig.dmMessage || '';
+      document.getElementById('modalRulePublicReply').value = orig.publicReply || '';
+      flowState.matchType = orig.matchType || 'contains';
+      flowState.triggerKeywords = Array.isArray(orig.triggers) ? [...orig.triggers] : ['LINK'];
+      flowState.ctaButtons = Array.isArray(orig.buttons) ? JSON.parse(JSON.stringify(orig.buttons)) : [];
+      flowState.secondReply = orig.secondReply ? JSON.parse(JSON.stringify(orig.secondReply)) : {
+        enabled: false,
+        triggerText: 'follow me first',
+        message: 'Awesome! Thanks for following. Here is your free PDF Guide: 👇',
+        mediaUrl: '',
+        fileName: '',
+        buttons: [{ label: 'Download PDF Guide 📄', url: '', type: 'pdf' }]
+      };
+      flowState.delaySeconds = orig.delaySeconds || 0;
+      selectFlowTarget(orig.targetPost || 'all');
+      renderKeywordChips();
+      renderCtaButtonInputs();
+    }
+
     async function deleteRule(id) {
-      if (!confirm('Are you sure you want to delete this rule?')) return;
+      if (!confirm('Are you sure you want to delete this automation rule?')) return;
       try {
         await apiFetch(`/api/rules/${id}`, { method: 'DELETE' });
         state.rules = state.rules.filter(r => r.id !== id);
         renderRules();
-        showToast('Rule deleted.');
+        renderAllMediaViews();
+        showToast('Automation rule deleted.');
       } catch (e) {}
     }
 
-    // LEADS RENDERING
+    // =========================================================================
+    // LEADS CRM RENDERING
+    // =========================================================================
     function renderLeads() {
       const container = document.getElementById('leadsTableContainer');
       const badge = document.getElementById('leadsCountBadge');
@@ -1453,7 +3113,7 @@
           <div class="text-center py-16 space-y-2">
             <i data-lucide="users" class="w-8 h-8 text-slate-500 mx-auto"></i>
             <div class="font-bold text-sm text-slate-300">No Leads Captured Yet</div>
-            <p class="text-xs text-slate-500 max-w-sm mx-auto">Once your Instagram account is connected and followers start commenting with trigger keywords, captured leads will appear here.</p>
+            <p class="text-xs text-slate-500 max-w-sm mx-auto">Once your Instagram account is active and followers comment with trigger keywords, converted leads will appear here.</p>
           </div>
         `;
         refreshIcons();
@@ -1462,20 +3122,22 @@
 
       container.innerHTML = `
         <table class="w-full text-left text-xs">
-          <thead class="bg-slate-900/60 text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
+          <thead class="bg-slate-900/80 text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
             <tr>
-              <th class="py-3 px-4">Username</th>
+              <th class="py-3 px-4">User Handle</th>
               <th class="py-3 px-4">Name</th>
-              <th class="py-3 px-4">Trigger Rule</th>
-              <th class="py-3 px-4">Date</th>
+              <th class="py-3 px-4">Automation Triggered</th>
+              <th class="py-3 px-4">Status</th>
+              <th class="py-3 px-4">Captured Date</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-white/5 text-slate-300">
             ${state.leads.map(lead => `
-              <tr>
+              <tr class="hover:bg-white/5 transition">
                 <td class="py-3 px-4 font-bold text-white">${lead.username}</td>
                 <td class="py-3 px-4">${lead.fullName || '—'}</td>
-                <td class="py-3 px-4">${lead.triggerRule}</td>
+                <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-md bg-violet-600/20 text-violet-300 border border-violet-500/30 text-[10px] font-mono">${lead.triggerRule}</span></td>
+                <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">DM DELIVERED</span></td>
                 <td class="py-3 px-4 font-mono text-[11px] text-slate-500">${lead.timestamp?.split('T')[0] || ''}</td>
               </tr>
             `).join('')}
@@ -1490,7 +3152,9 @@
       window.location.href = `/api/leads/export-csv?token=${encodeURIComponent(token)}`;
     }
 
-    // SIMULATOR
+    // =========================================================================
+    // INTERACTIVE LIVE SIMULATOR
+    // =========================================================================
     async function postSimulatorComment() {
       const input = document.getElementById('simInput');
       const text = input.value.trim();
@@ -1499,7 +3163,7 @@
 
       const list = document.getElementById('simCommentsList');
       const userEl = document.createElement('div');
-      userEl.className = "flex gap-2 text-xs";
+      userEl.className = "flex gap-2 text-xs animate-fadeIn";
       userEl.innerHTML = `
         <div class="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-[10px] text-white font-bold flex-shrink-0">YOU</div>
         <div class="flex-1">
@@ -1510,8 +3174,20 @@
       list.appendChild(userEl);
       list.scrollTop = list.scrollHeight;
 
+      const followerContainer = document.getElementById('simFollowerReplyContainer');
+      if (followerContainer) followerContainer.classList.add('hidden');
+      const secContainer = document.getElementById('simSecondReplyContainer');
+      if (secContainer) secContainer.classList.add('hidden');
+
+      // If DM banner is already visible and user is replying with trigger text:
+      const banner = document.getElementById('simDmBanner');
+      if (banner && !banner.classList.contains('hidden') && (text.toLowerCase().includes('follow') || text.toLowerCase().includes('more') || text.toLowerCase().includes('yes'))) {
+        triggerSimSecondReply(text);
+        return;
+      }
+
       try {
-        const res = await fetch('/api/simulate/comment', {
+        const res = await apiFetch('/api/simulate/comment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ comment: text, username: '@viewer' })
@@ -1520,8 +3196,9 @@
         if (data.success) {
           const sim = data.simulation;
           setTimeout(() => {
+            // Render Public Reply
             const replyEl = document.createElement('div');
-            replyEl.className = "flex gap-2 text-xs ml-4 pl-2 border-l border-violet-500/30";
+            replyEl.className = "flex gap-2 text-xs ml-4 pl-2 border-l border-violet-500/30 animate-fadeIn";
             replyEl.innerHTML = `
               <div class="w-5 h-5 rounded-full bg-violet-600 flex items-center justify-center text-[9px] text-white font-bold flex-shrink-0">IG</div>
               <div class="flex-1">
@@ -1532,21 +3209,120 @@
             list.appendChild(replyEl);
             list.scrollTop = list.scrollHeight;
 
-            // Show DM banner
-            const banner = document.getElementById('simDmBanner');
+            // Render Direct Message with Clean Professional Buttons
             const dmText = document.getElementById('simDmText');
             const btns = document.getElementById('simDmButtons');
             dmText.innerText = sim.dmPayload.message;
-            btns.innerHTML = (sim.dmPayload.buttons || []).map(b => `
-              <a href="${b.url}" target="_blank" class="block w-full py-1.5 text-center rounded-lg bg-violet-600 text-white font-bold text-[11px]">${b.label}</a>
-            `).join('');
+
+            const buttons = sim.dmPayload.buttons || [];
+            btns.innerHTML = buttons.map(b => {
+              const type = b.type || (b.url && b.url.toLowerCase().endsWith('.pdf') ? 'pdf' : (b.url && (b.url.endsWith('.png') || b.url.endsWith('.jpg')) ? 'image' : (b.url && (b.url.startsWith('http://') || b.url.startsWith('https://')) ? 'url' : 'quick_reply')));
+              const safeTarget = (b.url || b.label || '').replace(/'/g, "\\'");
+
+              if (type === 'quick_reply') {
+                return `
+                  <button type="button" onclick="triggerSimSecondReply('${safeTarget}', '${sim.ruleId || ''}')" class="cta-btn-preview block w-full py-2 px-3 text-center rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-[11px] flex items-center justify-between shadow-md transition cursor-pointer">
+                    <div class="flex items-center gap-1.5">
+                      <i data-lucide="message-square" class="w-3.5 h-3.5 text-cyan-200"></i>
+                      <span>${b.label || 'Quick Reply'}</span>
+                    </div>
+                    <span class="text-[9px] bg-black/40 text-cyan-200 px-2 py-0.5 rounded-full font-mono font-semibold">Tap to send 💬</span>
+                  </button>
+                `;
+              } else if (type === 'pdf') {
+                return `
+                  <a href="${b.url || '#'}" target="_blank" class="cta-btn-preview block w-full py-2 px-3 text-center rounded-xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-bold text-[11px] flex items-center justify-between shadow-md">
+                    <div class="flex items-center gap-1.5">
+                      <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+                      <span>${b.label || 'Download PDF Guide 📄'}</span>
+                    </div>
+                    <span class="text-[9px] bg-black/40 text-rose-200 px-2 py-0.5 rounded-full font-mono">PDF Doc</span>
+                  </a>
+                `;
+              } else if (type === 'image') {
+                return `
+                  <a href="${b.url || '#'}" target="_blank" class="cta-btn-preview block w-full py-2 px-3 text-center rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-[11px] flex items-center justify-between shadow-md">
+                    <div class="flex items-center gap-1.5">
+                      <i data-lucide="image" class="w-3.5 h-3.5"></i>
+                      <span>${b.label || 'View Deliverable 🖼️'}</span>
+                    </div>
+                    <span class="text-[9px] bg-black/40 text-emerald-200 px-2 py-0.5 rounded-full font-mono">Image</span>
+                  </a>
+                `;
+              } else {
+                return `
+                  <a href="${b.url || '#'}" target="_blank" class="cta-btn-preview block w-full py-2 px-3 text-center rounded-xl text-white font-bold text-[11px] flex items-center justify-center gap-1.5 shadow-md">
+                    <span>${b.label || 'Open Link'}</span>
+                    <i data-lucide="external-link" class="w-3 h-3"></i>
+                  </a>
+                `;
+              }
+            }).join('');
+
             banner.classList.remove('hidden');
-          }, 800);
+            refreshIcons();
+          }, 600);
         }
       } catch (e) {}
     }
 
-    // Startup
+    async function triggerSimSecondReply(triggerText, ruleId = null) {
+      const followerContainer = document.getElementById('simFollowerReplyContainer');
+      const followerText = document.getElementById('simFollowerReplyText');
+      if (followerContainer && followerText) {
+        followerText.innerText = triggerText || 'follow me first';
+        followerContainer.classList.remove('hidden');
+      }
+
+      try {
+        const res = await apiFetch('/api/simulate/second-reply', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ triggerText, ruleId, username: '@viewer' })
+        });
+        const data = await res.json();
+        if (data.success) {
+          setTimeout(() => {
+            const secContainer = document.getElementById('simSecondReplyContainer');
+            const secText = document.getElementById('simSecondReplyText');
+            const secBtns = document.getElementById('simSecondReplyButtons');
+            if (!secContainer || !secText || !secBtns) return;
+
+            const sec = data.secondReply;
+            secText.innerText = sec.message || 'Awesome! Thanks for following. Here is your free download: 👇';
+
+            const buttons = sec.buttons || [];
+            if (buttons.length) {
+              secBtns.innerHTML = buttons.map(b => `
+                <a href="${b.url || '#'}" target="_blank" class="cta-btn-preview block w-full py-2 px-3 text-center rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 hover:from-cyan-400 hover:to-violet-500 text-white font-bold text-[11px] flex items-center justify-center gap-1.5 shadow-md">
+                  <i data-lucide="${b.type === 'pdf' ? 'file-text' : (b.type === 'image' ? 'image' : 'download')}" class="w-3.5 h-3.5"></i>
+                  <span>${b.label || 'Download Resource 📄'}</span>
+                </a>
+              `).join('');
+            } else if (sec.mediaUrl) {
+              secBtns.innerHTML = `
+                <a href="${sec.mediaUrl}" target="_blank" class="cta-btn-preview block w-full py-2 px-3 text-center rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 hover:from-cyan-400 hover:to-violet-500 text-white font-bold text-[11px] flex items-center justify-center gap-1.5 shadow-md">
+                  <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+                  <span>${sec.fileName || 'Download Resource 📄'}</span>
+                </a>
+              `;
+            } else {
+              secBtns.innerHTML = '';
+            }
+
+            secContainer.classList.remove('hidden');
+            refreshIcons();
+
+            const banner = document.getElementById('simDmBanner');
+            if (banner) banner.scrollTop = banner.scrollHeight;
+          }, 500);
+        }
+      } catch (e) {
+        console.error('[Simulator Second Reply Error]:', e);
+      }
+    }
+
+    // Startup Initialization
     window.addEventListener('DOMContentLoaded', () => {
       checkAuth();
     });

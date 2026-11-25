@@ -16,6 +16,14 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Global Resilient Error Guards (Prevents process crash on network or parsing error)
+process.on('uncaughtException', (err) => {
+  console.error('[Global Uncaught Exception]:', err.message || err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[Global Unhandled Rejection]:', reason?.message || reason);
+});
+
 // Native .env loader
 try {
   const envPath = path.join(__dirname, '.env');
@@ -38,6 +46,10 @@ try {
 
 const PORT = process.env.PORT || 5050;
 const DB_FILE = path.join(__dirname, 'data', 'database.json');
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -50,7 +62,12 @@ const MIME_TYPES = {
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
   '.webp': 'image/webp',
-  '.woff2': 'font/woff2'
+  '.woff2': 'font/woff2',
+  '.pdf': 'application/pdf',
+  '.zip': 'application/zip',
+  '.doc': 'application/msword',
+  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.mp4': 'video/mp4'
 };
 
 // =============================================================================
@@ -511,11 +528,107 @@ function getUserFromReq(req, db) {
   return fallbackUser;
 }
 
-function getRedirectUri(req) {
+function getRedirectUri(req, currentPath = '/api/auth/facebook/callback') {
   if (process.env.META_REDIRECT_URI) return process.env.META_REDIRECT_URI;
   const host = req.headers['x-forwarded-host'] || req.headers['host'] || 'literature-frankfurt-afford-constitute.trycloudflare.com';
   const proto = req.headers['x-forwarded-proto'] || (req.socket.encrypted ? 'https' : 'https');
-  return `${proto}://${host}/api/auth/facebook/callback`;
+  const path = currentPath && currentPath.includes('/api/auth/') ? currentPath : '/api/auth/facebook/callback';
+  return `${proto}://${host}${path}`;
+}
+
+// =============================================================================
+// Helper: Smart Rule Matcher for Comments & Simulators
+// =============================================================================
+function matchCommentToRule(rule, rawCommentText, mediaId, mediaType) {
+  if (!rule || rule.status !== 'active') return false;
+  const commentText = (rawCommentText || '').trim().toUpperCase();
+
+  // 1. Target check (All vs All Reels vs All Posts vs Specific Media ID)
+  if (rule.targetPost && rule.targetPost !== 'all') {
+    if (rule.targetPost === 'all_reels') {
+      if (mediaType && mediaType !== 'VIDEO') return false;
+    } else if (rule.targetPost === 'all_posts') {
+      if (mediaType && mediaType === 'VIDEO') return false;
+    } else if (mediaId && rule.targetPost !== mediaId) {
+      return false;
+    }
+  }
+
+  // 2. Exclude triggers check (Anti-spam / negative keywords)
+  if (Array.isArray(rule.excludeTriggers) && rule.excludeTriggers.length > 0) {
+    const isExcluded = rule.excludeTriggers.some(ex => ex && commentText.includes(String(ex).trim().toUpperCase()));
+    if (isExcluded) return false;
+  }
+
+  // 3. Match type check
+  if (rule.matchType === 'any_comment') {
+    return true;
+  }
+
+  const triggers = Array.isArray(rule.triggers) ? rule.triggers : [];
+  if (triggers.length === 0) return false;
+
+  if (rule.matchType === 'exact') {
+    return triggers.some(t => commentText === String(t).trim().toUpperCase());
+  }
+
+  // 'contains' (default)
+  return triggers.some(t => commentText.includes(String(t).trim().toUpperCase()));
+}
+
+// Dispatch DM with optional Meta Button Template and clean text fallback
+async function dispatchInstagramDM(token, commenterId, commenterUsername, rule) {
+  const dmUrl = `https://graph.facebook.com/v21.0/me/messages?access_token=${token}`;
+  const personalizedText = (rule.dmMessage || 'Hey {{name}}! Here is your link.').replace(/\{\{name\}\}/g, commenterUsername || 'friend').replace(/\{\{username\}\}/g, `@${commenterUsername || 'friend'}`);
+
+  if (Array.isArray(rule.buttons) && rule.buttons.length > 0) {
+    try {
+      const genericPayload = {
+        recipient: { id: commenterId },
+        message: {
+          attachment: {
+            type: "template",
+            payload: {
+              template_type: "generic",
+              elements: [{
+                title: (rule.name || "Special Resource").slice(0, 80),
+                subtitle: personalizedText.slice(0, 80),
+                buttons: rule.buttons.slice(0, 3).map(b => ({
+                  type: "web_url",
+                  url: b.url || 'https://instagram.com',
+                  title: (b.label || "Open Link").slice(0, 20)
+                }))
+              }]
+            }
+          }
+        }
+      };
+      await httpsPost(dmUrl, genericPayload);
+      return;
+    } catch (btnErr) {
+      console.warn('[DM Buttons Template Error, falling back to clean text]:', btnErr.message);
+    }
+    // Fallback: send clean text with professional button link list
+    const fallbackText = `${personalizedText}\n\n` + rule.buttons.map(b => `👉 ${b.label}: ${b.url}`).join('\n');
+    await httpsPost(dmUrl, {
+      recipient: { id: commenterId },
+      message: { text: fallbackText }
+    });
+  } else {
+    await httpsPost(dmUrl, {
+      recipient: { id: commenterId },
+      message: { text: personalizedText }
+    });
+  }
+}
+
+// Dispatch public reply with support for multi-variant rotation
+async function dispatchPublicReply(token, commentId, commenterUsername, rule) {
+  if (!rule.publicReply || !commentId) return;
+  const replyVariants = rule.publicReply.split('|').map(r => r.trim()).filter(Boolean);
+  const selectedVariant = replyVariants[Math.floor(Math.random() * replyVariants.length)] || rule.publicReply;
+  const replyUrl = `https://graph.facebook.com/v21.0/${commentId}/replies?access_token=${token}`;
+  await httpsPost(replyUrl, { message: selectedVariant.replace(/\{\{name\}\}/g, `@${commenterUsername}`) });
 }
 
 // =============================================================================
@@ -690,7 +803,7 @@ const server = http.createServer(async (req, res) => {
   // ---------------------------------------------------------------------------
   // 1.5. FACEBOOK / INSTAGRAM OAUTH CALLBACK (/api/auth/facebook/callback)
   // ---------------------------------------------------------------------------
-  if (pathname === '/api/auth/facebook/callback' && method === 'GET') {
+  if ((pathname === '/api/auth/facebook/callback' || pathname === '/api/auth/instagram/callback') && method === 'GET') {
     const code = parsedUrl.query.code;
     const error = parsedUrl.query.error;
     const errorDescription = parsedUrl.query.error_description;
@@ -703,9 +816,9 @@ const server = http.createServer(async (req, res) => {
     }
 
     const db = readDatabase();
-    const clientId = process.env.META_APP_ID || db.instagram.appId || '3050678375263805';
-    const clientSecret = process.env.META_APP_SECRET || db.instagram.appSecret;
-    const redirectUri = getRedirectUri(req);
+    const clientId = process.env.META_APP_ID || db.instagram.appId || '2401678503569810';
+    const clientSecret = process.env.META_APP_SECRET || db.instagram.appSecret || '438386a97434a08b45a420c645fd65b1';
+    const redirectUri = getRedirectUri(req, pathname);
 
     console.log('[OAuth] Received authorization code from Meta! Code:', code.slice(0, 15) + '...');
 
@@ -1145,11 +1258,36 @@ const server = http.createServer(async (req, res) => {
     }
 
     try {
-      const mediaUrl = `https://graph.facebook.com/v21.0/${ig.accountId}/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,comments_count,like_count&access_token=${ig.accessToken}&limit=50`;
-      const mediaRes = await httpsGet(mediaUrl);
+      const fields = 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,comments_count,like_count';
+      const mediaUrl = `https://graph.facebook.com/v21.0/${ig.accountId}/media?fields=${fields}&access_token=${ig.accessToken}&limit=100`;
+      const tagsUrl = `https://graph.facebook.com/v21.0/${ig.accountId}/tags?fields=${fields}&access_token=${ig.accessToken}&limit=100`;
 
-      if (mediaRes.body && mediaRes.body.data) {
-        const syncedReels = mediaRes.body.data.map(m => ({
+      let rawItems = [];
+      const mediaRes = await httpsGet(mediaUrl);
+      if (mediaRes.body && Array.isArray(mediaRes.body.data)) {
+        rawItems = rawItems.concat(mediaRes.body.data.map(m => ({ ...m, isCollab: false })));
+      }
+
+      try {
+        const tagsRes = await httpsGet(tagsUrl);
+        if (tagsRes.body && Array.isArray(tagsRes.body.data)) {
+          rawItems = rawItems.concat(tagsRes.body.data.map(m => ({ ...m, isCollab: true })));
+        }
+      } catch (tagErr) {
+        console.warn('[SaaS Sync] Tags notice:', tagErr.message);
+      }
+
+      if (rawItems.length > 0) {
+        const mediaMap = new Map();
+        for (const item of rawItems) {
+          if (mediaMap.has(item.id)) {
+            if (item.isCollab) mediaMap.get(item.id).isCollab = true;
+          } else {
+            mediaMap.set(item.id, item);
+          }
+        }
+
+        const syncedReels = Array.from(mediaMap.values()).map(m => ({
           id: m.id,
           caption: m.caption || '',
           permalink: m.permalink || '',
@@ -1157,13 +1295,22 @@ const server = http.createServer(async (req, res) => {
           thumbnailUrl: m.thumbnail_url || m.media_url || '',
           likeCount: m.like_count || 0,
           commentsCount: m.comments_count || 0,
-          timestamp: m.timestamp
+          timestamp: m.timestamp,
+          isCollab: Boolean(m.isCollab)
         }));
 
         if (user) user.reels = syncedReels;
         db.reels = syncedReels;
         writeDatabase(db);
-        sendJson(res, 200, { success: true, message: `Synced ${syncedReels.length} reels/posts!`, reels: syncedReels });
+        const ownCount = syncedReels.filter(r => !r.isCollab).length;
+        const collabCount = syncedReels.filter(r => r.isCollab).length;
+        sendJson(res, 200, {
+          success: true,
+          message: `Synced ${syncedReels.length} total posts (${ownCount} personal, ${collabCount} collabs/tagged)!`,
+          reels: syncedReels,
+          ownCount,
+          collabCount
+        });
       } else {
         sendJson(res, 400, { success: false, error: mediaRes.body?.error?.message || 'Could not fetch media' });
       }
@@ -1368,12 +1515,29 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (pathname.startsWith('/api/rules/') && method === 'GET') {
+    const ruleId = pathname.replace('/api/rules/', '').trim();
+    const db = readDatabase();
+    const user = getUserFromReq(req, db);
+    const targetRules = (user ? user.rules : db.rules) || [];
+    const rule = targetRules.find(r => r.id === ruleId);
+    if (rule) {
+      sendJson(res, 200, { success: true, rule });
+    } else {
+      sendJson(res, 404, { success: false, error: 'Rule not found' });
+    }
+    return;
+  }
+
   if (pathname === '/api/rules' && method === 'POST') {
     const body = await parseBody(req);
     const db = readDatabase();
     const user = getUserFromReq(req, db);
 
-    if (!body.name || !body.triggers || !body.triggers.length) {
+    const matchType = body.matchType || 'contains';
+    const isAnyComment = matchType === 'any_comment';
+
+    if (!body.name || (!isAnyComment && (!body.triggers || !body.triggers.length))) {
       sendJson(res, 400, { success: false, error: 'Rule name and trigger keywords are required.' });
       return;
     }
@@ -1387,18 +1551,41 @@ const server = http.createServer(async (req, res) => {
       userId: user?.id,
       name: body.name.trim(),
       status: body.status || 'active',
+      matchType: matchType,
       triggers: Array.isArray(body.triggers)
-        ? body.triggers.map(t => String(t).trim().toUpperCase())
-        : String(body.triggers).split(',').map(t => t.trim().toUpperCase()).filter(Boolean),
-      matchType: body.matchType || 'contains',
-      targetPost: body.targetPost || 'all_reels',
+        ? body.triggers.map(t => String(t).trim().toUpperCase()).filter(Boolean)
+        : String(body.triggers || '').split(',').map(t => t.trim().toUpperCase()).filter(Boolean),
+      excludeTriggers: Array.isArray(body.excludeTriggers)
+        ? body.excludeTriggers.map(t => String(t).trim().toUpperCase()).filter(Boolean)
+        : String(body.excludeTriggers || '').split(',').map(t => t.trim().toUpperCase()).filter(Boolean),
+      targetPost: body.targetPost || 'all',
+      targetPostThumbnail: body.targetPostThumbnail || '',
+      targetPostCaption: body.targetPostCaption || '',
+      targetPostType: body.targetPostType || 'ALL',
       publicReply: body.publicReply || 'Sent you the link in your DMs! 🚀 Check your inbox!',
-      dmMessage: body.dmMessage || 'Hey {{name}}! Here is your requested resource.',
+      dmMessage: body.dmMessage || 'Hey {{name}}! Here is your requested link:',
       heroImage: body.heroImage || '',
-      buttons: Array.isArray(body.buttons) ? body.buttons : [],
-      delaySeconds: Number(body.delaySeconds) || 30,
-      stats: existingIdx >= 0 ? targetRules[existingIdx].stats : { triggered: 0, dmsSent: 0, clickRate: '0%' },
-      createdAt: new Date().toISOString()
+      buttons: Array.isArray(body.buttons) ? body.buttons.map(b => ({
+        id: b.id || `btn_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        label: String(b.label || '').trim(),
+        type: b.type || (b.url && b.url.toLowerCase().endsWith('.pdf') ? 'pdf' : (b.url && (b.url.endsWith('.png') || b.url.endsWith('.jpg') || b.url.endsWith('.jpeg')) ? 'image' : (b.url && (b.url.startsWith('http://') || b.url.startsWith('https://')) ? 'url' : 'quick_reply'))),
+        url: String(b.url || '').trim(),
+        fileName: b.fileName || '',
+        fileSize: b.fileSize || ''
+      })).filter(b => b.label) : [],
+      secondReply: body.secondReply ? {
+        enabled: Boolean(body.secondReply.enabled),
+        triggerText: String(body.secondReply.triggerText || '').trim(),
+        message: String(body.secondReply.message || '').trim(),
+        mediaType: body.secondReply.mediaType || 'none',
+        mediaUrl: String(body.secondReply.mediaUrl || '').trim(),
+        fileName: String(body.secondReply.fileName || '').trim(),
+        buttons: Array.isArray(body.secondReply.buttons) ? body.secondReply.buttons.filter(b => b && b.label) : []
+      } : { enabled: false, triggerText: '', message: '', mediaType: 'none', mediaUrl: '', fileName: '', buttons: [] },
+      delaySeconds: Number(body.delaySeconds) || 0,
+      stats: existingIdx >= 0 && targetRules[existingIdx].stats ? targetRules[existingIdx].stats : { triggered: 0, dmsSent: 0, clickRate: '0%' },
+      updatedAt: new Date().toISOString(),
+      createdAt: existingIdx >= 0 && targetRules[existingIdx].createdAt ? targetRules[existingIdx].createdAt : new Date().toISOString()
     };
 
     if (existingIdx >= 0) {
@@ -1513,20 +1700,21 @@ const server = http.createServer(async (req, res) => {
     const body = await parseBody(req);
     const userComment = (body.comment || '').trim();
     const username = body.username || '@viewer';
+    const mediaId = body.mediaId || null;
+    const mediaType = body.mediaType || 'VIDEO';
     const db = readDatabase();
+    const user = getUserFromReq(req, db);
 
     if (!userComment) {
       sendJson(res, 400, { success: false, error: 'Comment text is required' });
       return;
     }
 
-    const upperComment = userComment.toUpperCase();
+    const targetRules = (user && user.rules && user.rules.length) ? user.rules : db.rules;
     let matchedRule = null;
 
-    for (const rule of db.rules) {
-      if (rule.status !== 'active') continue;
-      const match = rule.triggers.some(t => upperComment.includes(t));
-      if (match) {
+    for (const rule of targetRules) {
+      if (matchCommentToRule(rule, userComment, mediaId, mediaType)) {
         matchedRule = rule;
         break;
       }
@@ -1534,37 +1722,167 @@ const server = http.createServer(async (req, res) => {
 
     let result = null;
     if (matchedRule) {
+      matchedRule.stats = matchedRule.stats || { triggered: 0, dmsSent: 0, clickRate: '0%' };
       matchedRule.stats.triggered = (matchedRule.stats.triggered || 0) + 1;
+      matchedRule.stats.dmsSent = (matchedRule.stats.dmsSent || 0) + 1;
       db.metrics.totalDMsSent = (db.metrics.totalDMsSent || 0) + 1;
       writeDatabase(db);
+
+      // Multi-reply variant picker
+      const variants = (matchedRule.publicReply || 'Sent to your DMs! 🚀').split('|').map(s => s.trim()).filter(Boolean);
+      const chosenReply = variants[Math.floor(Math.random() * variants.length)] || matchedRule.publicReply;
+
+      const cleanUser = username.replace(/^@/, '');
+      const personalizedDm = (matchedRule.dmMessage || 'Hey {{name}}! Here is your link:')
+        .replace(/\{\{name\}\}/g, cleanUser)
+        .replace(/\{\{username\}\}/g, `@${cleanUser}`);
 
       result = {
         matched: true,
         ruleName: matchedRule.name,
-        publicReply: matchedRule.publicReply.replace(/\{\{name\}\}/g, username),
-        delaySeconds: matchedRule.delaySeconds,
+        targetPost: matchedRule.targetPost,
+        matchType: matchedRule.matchType,
+        publicReply: chosenReply.replace(/\{\{name\}\}/g, username),
+        delaySeconds: matchedRule.delaySeconds || 0,
         dmPayload: {
           recipient: username,
-          message: matchedRule.dmMessage.replace(/\{\{name\}\}/g, username.replace('@', '')),
+          message: personalizedDm,
           heroImage: matchedRule.heroImage,
-          buttons: matchedRule.buttons
+          buttons: matchedRule.buttons || [],
+          secondReply: matchedRule.secondReply || null
         }
       };
     } else {
       result = {
         matched: false,
-        publicReply: `Hey ${username}! Thanks for watching! Drop one of our active keywords to get the private link. 🚀`,
-        delaySeconds: 10,
+        publicReply: `Hey ${username}! Thanks for commenting! Drop one of our active keywords (e.g. LINK or GUIDE) to get your link instantly! 🚀`,
+        delaySeconds: 0,
         dmPayload: {
           recipient: username,
-          message: `Hey ${username}! Thanks for your comment: "${userComment}". We didn't catch an active keyword trigger, but feel free to explore our links!`,
-          buttons: [{ label: 'Explore Links 🌐', url: 'https://example.com' }]
+          message: `Hey ${username}! Thanks for your comment: "${userComment}". We didn't detect an active keyword trigger, but check out our bio link!`,
+          buttons: [{ label: 'Explore Resources 🌐', url: 'https://instagram.com', type: 'url' }],
+          secondReply: null
         }
       };
     }
 
     sendJson(res, 200, { success: true, simulation: result });
     return;
+  }
+
+  // ---------------------------------------------------------------------------
+  // 6b. SECOND REPLY SIMULATOR (Trigger Follow-Up DM on Quick Reply / Text)
+  // ---------------------------------------------------------------------------
+  if (pathname === '/api/simulate/second-reply' && method === 'POST') {
+    const body = await parseBody(req);
+    const triggerText = (body.triggerText || '').trim();
+    const ruleId = body.ruleId;
+    const username = body.username || '@viewer';
+    const db = readDatabase();
+    const user = getUserFromReq(req, db);
+    const targetRules = (user && user.rules && user.rules.length) ? user.rules : db.rules;
+
+    let targetRule = null;
+    if (ruleId) {
+      targetRule = targetRules.find(r => r.id === ruleId);
+    }
+    if (!targetRule && triggerText) {
+      targetRule = targetRules.find(r => {
+        if (!r.secondReply || !r.secondReply.enabled) return false;
+        const exp = (r.secondReply.triggerText || '').trim().toLowerCase();
+        return exp && (triggerText.toLowerCase().includes(exp) || exp.includes(triggerText.toLowerCase()));
+      });
+    }
+
+    const cleanUser = username.replace(/^@/, '');
+    if (targetRule && targetRule.secondReply && targetRule.secondReply.enabled) {
+      const sec = targetRule.secondReply;
+      const personalizedMsg = (sec.message || 'Awesome! Here is your download link / deliverable: 🚀')
+        .replace(/\{\{name\}\}/g, cleanUser)
+        .replace(/\{\{username\}\}/g, `@${cleanUser}`);
+
+      sendJson(res, 200, {
+        success: true,
+        secondReply: {
+          message: personalizedMsg,
+          mediaType: sec.mediaType || 'none',
+          mediaUrl: sec.mediaUrl || '',
+          fileName: sec.fileName || '',
+          buttons: sec.buttons || []
+        }
+      });
+      return;
+    }
+
+    // Default graceful follow-up if not explicitly configured
+    sendJson(res, 200, {
+      success: true,
+      secondReply: {
+        message: `Thanks for confirming, ${cleanUser}! Here is your requested resource: ✨`,
+        mediaType: 'pdf',
+        mediaUrl: '/uploads/sample_guide.pdf',
+        fileName: 'Instant_Access_Guide.pdf',
+        buttons: [{ label: 'Download Deliverable 📄', url: 'https://instagram.com', type: 'pdf' }]
+      }
+    });
+    return;
+  }
+
+  // ---------------------------------------------------------------------------
+  // 6c. RESOURCE & DELIVERABLE UPLOAD (PDF Documents, Images, Files)
+  // ---------------------------------------------------------------------------
+  if (pathname === '/api/upload' && method === 'POST') {
+    const body = await parseBody(req);
+    const { fileName, fileData } = body;
+
+    if (!fileName || !fileData) {
+      sendJson(res, 400, { success: false, error: 'Both fileName and fileData (base64) are required.' });
+      return;
+    }
+
+    try {
+      const base64Content = fileData.includes(';base64,') ? fileData.split(';base64,')[1] : fileData;
+      const fileBuffer = Buffer.from(base64Content, 'base64');
+
+      const ext = path.extname(fileName).toLowerCase() || '.bin';
+      const baseName = path.basename(fileName, ext).replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 40) || 'file';
+      const uniqueFileName = `${baseName}_${Date.now()}${ext}`;
+      const filePath = path.join(UPLOADS_DIR, uniqueFileName);
+
+      fs.writeFileSync(filePath, fileBuffer);
+
+      const hostHeader = req.headers.host || `localhost:${PORT}`;
+      const protocol = req.headers['x-forwarded-proto'] || (hostHeader.includes('trycloudflare.com') || hostHeader.includes('ngrok') ? 'https' : 'http');
+      const baseUrl = `${protocol}://${hostHeader}`;
+      const fileUrl = `${baseUrl}/uploads/${uniqueFileName}`;
+
+      const sizeKb = (fileBuffer.length / 1024).toFixed(1);
+      const sizeMb = (fileBuffer.length / (1024 * 1024)).toFixed(2);
+      const formattedSize = fileBuffer.length > 1024 * 1024 ? `${sizeMb} MB` : `${sizeKb} KB`;
+
+      let detectedType = 'file';
+      if (['.pdf'].includes(ext)) detectedType = 'pdf';
+      else if (['.png', '.jpg', '.jpeg', '.webp', '.svg', '.gif'].includes(ext)) detectedType = 'image';
+
+      console.log(`[Upload API] Successfully saved: ${uniqueFileName} (${formattedSize}) -> ${fileUrl}`);
+
+      sendJson(res, 200, {
+        success: true,
+        fileName: fileName,
+        savedName: uniqueFileName,
+        url: fileUrl,
+        relativeUrl: `/uploads/${uniqueFileName}`,
+        fileSize: formattedSize,
+        bytes: fileBuffer.length,
+        ext: ext.replace('.', ''),
+        type: detectedType
+      });
+      return;
+    } catch (err) {
+      console.error('[Upload Error]:', err);
+      sendJson(res, 500, { success: false, error: err.message });
+      return;
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -1611,25 +1929,22 @@ const server = http.createServer(async (req, res) => {
             const commentId = val.id;
 
             // Find matching active rule
-            const matchedRule = db.rules.find(r => r.status === 'active' && r.triggers.some(t => commentText.includes(t)));
+            const matchedRule = db.rules.find(r => matchCommentToRule(r, commentText, val.media?.id, val.media?.media_product_type));
             if (matchedRule && commenterId) {
               console.log(`[Webhook] Matched rule "${matchedRule.name}" for comment: ${val.text}`);
 
               // 1. Post public reply
               if (matchedRule.publicReply && commentId) {
-                const replyUrl = `https://graph.facebook.com/v21.0/${commentId}/replies?access_token=${db.instagram.accessToken}`;
-                await httpsPost(replyUrl, { message: matchedRule.publicReply });
+                await dispatchPublicReply(db.instagram.accessToken, commentId, val.from?.username || 'friend', matchedRule);
               }
 
-              // 2. Dispatch Direct Message
-              const dmUrl = `https://graph.facebook.com/v21.0/me/messages?access_token=${db.instagram.accessToken}`;
-              await httpsPost(dmUrl, {
-                recipient: { id: commenterId },
-                message: { text: matchedRule.dmMessage }
-              });
+              // 2. Dispatch Direct Message with buttons support
+              await dispatchInstagramDM(db.instagram.accessToken, commenterId, val.from?.username || 'friend', matchedRule);
 
               // Increment real metrics
+              matchedRule.stats = matchedRule.stats || { triggered: 0, dmsSent: 0, clickRate: '0%' };
               matchedRule.stats.triggered = (matchedRule.stats.triggered || 0) + 1;
+              matchedRule.stats.dmsSent = (matchedRule.stats.dmsSent || 0) + 1;
               db.metrics.totalDMsSent = (db.metrics.totalDMsSent || 0) + 1;
               writeDatabase(db);
             }
@@ -1650,6 +1965,36 @@ const server = http.createServer(async (req, res) => {
     if (fs.existsSync(indexPath)) {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(fs.readFileSync(indexPath));
+      return;
+    }
+  }
+
+  // Handle uploaded deliverables (/uploads/*)
+  if (pathname.startsWith('/uploads/')) {
+    const requestedFile = pathname.replace(/^\/uploads\//, '');
+    const safeUploadPath = path.normalize(path.join(UPLOADS_DIR, requestedFile));
+    if (!safeUploadPath.startsWith(UPLOADS_DIR)) {
+      res.writeHead(403);
+      res.end('Forbidden');
+      return;
+    }
+    if (fs.existsSync(safeUploadPath) && fs.statSync(safeUploadPath).isFile()) {
+      const ext = path.extname(safeUploadPath).toLowerCase();
+      const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+      const isInline = ['.pdf', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.txt', '.mp4'].includes(ext);
+      const disposition = isInline ? 'inline' : `attachment; filename="${path.basename(safeUploadPath)}"`;
+      const stats = fs.statSync(safeUploadPath);
+      res.writeHead(200, {
+        'Content-Type': contentType,
+        'Content-Disposition': disposition,
+        'Content-Length': stats.size,
+        'Access-Control-Allow-Origin': '*'
+      });
+      fs.createReadStream(safeUploadPath).pipe(res);
+      return;
+    } else {
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      res.end('File Not Found');
       return;
     }
   }
@@ -1746,23 +2091,18 @@ async function scanAndProcessLiveComments() {
             const commenterId = c.from?.id;
 
             for (const rule of activeRules) {
-              const isMatch = rule.triggers.some(t => commentText.includes(t));
+              const isMatch = matchCommentToRule(rule, commentText, reel.id, reel.mediaType);
               if (isMatch) {
                 console.log(`[Scanner] 🔥 User @${u.instagram.username} matched rule "${rule.name}" for comment: "${c.text}" by @${commenterUsername}`);
 
-                // 1. Post public comment reply
+                // 1. Post public comment reply (with randomized variants)
                 if (rule.publicReply) {
-                  const replyUrl = `https://graph.facebook.com/v21.0/${c.id}/replies?access_token=${token}`;
-                  await httpsPost(replyUrl, { message: rule.publicReply.replace(/\{\{name\}\}/g, `@${commenterUsername}`) });
+                  await dispatchPublicReply(token, c.id, commenterUsername, rule);
                 }
 
-                // 2. Dispatch Direct Message
+                // 2. Dispatch Direct Message (with clean buttons template & fallback)
                 if (commenterId) {
-                  const dmUrl = `https://graph.facebook.com/v21.0/me/messages?access_token=${token}`;
-                  await httpsPost(dmUrl, {
-                    recipient: { id: commenterId },
-                    message: { text: rule.dmMessage.replace(/\{\{name\}\}/g, commenterUsername) }
-                  });
+                  await dispatchInstagramDM(token, commenterId, commenterUsername, rule);
                   totalDMsSentAcrossUsers++;
                   if (!u.metrics) u.metrics = { totalDMsSent: 0 };
                   u.metrics.totalDMsSent = (u.metrics.totalDMsSent || 0) + 1;
@@ -1781,6 +2121,7 @@ async function scanAndProcessLiveComments() {
 
                 rule.stats = rule.stats || {};
                 rule.stats.triggered = (rule.stats.triggered || 0) + 1;
+                rule.stats.dmsSent = (rule.stats.dmsSent || 0) + 1;
                 break;
               }
             }

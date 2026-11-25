@@ -1,32 +1,20 @@
-# 🚀 EngageFlow
-### Turn Instagram Comments into Customers on Autopilot
+# EngageFlow SaaS
 
-> **Enterprise Public SaaS for Creators, Brands & Agencies**  
-> Completely standalone and isolated. Zero external npm dependencies required to run!
+EngageFlow is a self-hosted platform designed to automate Instagram direct messages from comments. It provides a web dashboard, rule builder, multi-action CTA buttons (web links, PDF documents, images, and quick replies), and a two-step follow-up reply flow.
 
----
+## Getting Started
 
-## 🌟 What is EngageFlow?
-EngageFlow is a modern, high-conversion Instagram automation platform. It turns casual Reel/Post comments into high-ticket leads, purchases, and booked calls by automatically sending personalized Direct Messages with interactive buttons (CTAs) within seconds.
+1. Ensure Node.js (version 18 or newer) is installed.
+2. Clone the repository.
+3. Copy `.env.example` to `.env` and set your configuration variables.
+4. Run `node server.js` to start the server on port 5050.
+5. Visit `http://localhost:5050` in your web browser.
 
----
+## Features
 
-## 🚀 How to Run Locally
-
-```bash
-cd public-saas-edition
-node server.js
-```
-Open in browser:
-```text
-http://localhost:5050
-```
-
----
-
-## 🛠️ Tech Stack & Production Architecture
-- **Backend**: Native Node.js HTTP/HTTPS server (Zero npm dependencies, ultra-fast & lightweight)
-- **Frontend**: Modern Glassmorphism UI (Tailwind CSS, Plus Jakarta Sans, Lucide Icons)
-- **Database**: Pure JSON File Store (`data/database.json`)
-- **API**: Official Meta Graph API v21.0
-- **Security**: SHA-512 PBKDF2 Password Encryption, Secure Token Sessions
+- Zero third-party npm dependencies; built with native Node.js APIs.
+- Interactive rule builder supporting keyword triggers, regex, and exclusions.
+- Action button support for web URLs, downloadable PDFs, images, and quick reply triggers.
+- Multi-step flow: send an initial direct message and follow up when users tap a quick reply.
+- Built-in simulator to test responses and user flows locally.
+- Lead capture and CSV export.

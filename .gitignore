@@ -2,6 +2,11 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.log
+*.backup
 .env
-.env.*
+.env.local
+.env.*.local
+!.env.example
 data/database.json
+uploads/*
+!uploads/.gitkeep

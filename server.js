@@ -805,6 +805,28 @@ const server = http.createServer(async (req, res) => {
               db.users.push(sessionUser);
             }
 
+            // -----------------------------------------------------------------
+            // EXCLUSIVE INSTAGRAM OWNERSHIP ENFORCEMENT
+            // Rule: One Instagram account can ONLY be connected by ONE user!
+            // No two users can ever claim or share the same Instagram account.
+            // -----------------------------------------------------------------
+            const existingClaimer = db.users.find(u =>
+              u.id !== sessionUser.id &&
+              u.instagram &&
+              u.instagram.connected &&
+              (u.instagram.accountId === connectedIg.id ||
+               (u.instagram.username && u.instagram.username.toLowerCase() === `@${connectedIg.username.toLowerCase()}`))
+            );
+
+            if (existingClaimer) {
+              console.warn(`[Security] Instagram account @${connectedIg.username} is already bound to user ${existingClaimer.email}!`);
+              res.writeHead(302, {
+                Location: `/?error=${encodeURIComponent(`The Instagram account @${connectedIg.username} is already connected to another user account (${existingClaimer.name}). Each Instagram account can only be linked to one user. Please disconnect it from that account first.`)}&error_code=ACCOUNT_ALREADY_CONNECTED`
+              });
+              res.end();
+              return;
+            }
+
             // Guarantee isolated user containers for multi-tenancy (20-25 users)
             sessionUser.instagram = {
               connected: true,
@@ -1003,7 +1025,26 @@ const server = http.createServer(async (req, res) => {
       }
 
       const db = readDatabase();
-      db.instagram = {
+      const user = getUserFromReq(req, db);
+
+      // Rule: Check if another user already connected this exact Instagram account
+      const existingClaimer = db.users.find(u =>
+        u.id !== user?.id &&
+        u.instagram &&
+        u.instagram.connected &&
+        (u.instagram.accountId === connectedIg.id ||
+         (u.instagram.username && u.instagram.username.toLowerCase() === `@${connectedIg.username.toLowerCase()}`))
+      );
+
+      if (existingClaimer) {
+        sendJson(res, 400, {
+          success: false,
+          error: `The Instagram account @${connectedIg.username} is already connected to another EngageFlow user (${existingClaimer.name}). Two users cannot connect the same Instagram account.`
+        });
+        return;
+      }
+
+      const connectedPayload = {
         connected: true,
         accountId: connectedIg.id,
         username: `@${connectedIg.username}`,
@@ -1016,6 +1057,11 @@ const server = http.createServer(async (req, res) => {
         appSecret: appSecret.trim(),
         webhookVerifyToken: db.instagram.webhookVerifyToken || 'engageflow_webhook_secret_2026'
       };
+
+      if (user) {
+        user.instagram = { ...connectedPayload };
+      }
+      db.instagram = { ...connectedPayload };
 
       // Auto-Sync recent media
       try {
@@ -1170,8 +1216,26 @@ const server = http.createServer(async (req, res) => {
       // Success! Real Instagram details obtained from Meta
       const igData = metaRes.body;
       const db = readDatabase();
+      const user = getUserFromReq(req, db);
 
-      db.instagram = {
+      // Rule: Check if another user already connected this exact Instagram account
+      const existingClaimer = db.users.find(u =>
+        u.id !== user?.id &&
+        u.instagram &&
+        u.instagram.connected &&
+        (u.instagram.accountId === (igData.id || accountId.trim()) ||
+         (u.instagram.username && u.instagram.username.toLowerCase() === `@${(igData.username || '').toLowerCase()}`))
+      );
+
+      if (existingClaimer) {
+        sendJson(res, 400, {
+          success: false,
+          error: `The Instagram account (@${igData.username || accountId}) is already connected to another EngageFlow user (${existingClaimer.name}). Two users cannot connect the same Instagram account.`
+        });
+        return;
+      }
+
+      const connectedData = {
         connected: true,
         accountId: igData.id || accountId.trim(),
         username: igData.username ? `@${igData.username}` : '@instagram_creator',
@@ -1184,6 +1248,11 @@ const server = http.createServer(async (req, res) => {
         appSecret: appSecret ? appSecret.trim() : '',
         webhookVerifyToken: webhookVerifyToken ? webhookVerifyToken.trim() : 'autopulse_public_webhook_2026'
       };
+
+      if (user) {
+        user.instagram = { ...connectedData };
+      }
+      db.instagram = { ...connectedData };
 
       writeDatabase(db);
 

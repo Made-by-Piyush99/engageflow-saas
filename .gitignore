@@ -10,3 +10,5 @@ Thumbs.db
 data/database.json
 uploads/*
 !uploads/.gitkeep
+certs/
+generate-certs.js

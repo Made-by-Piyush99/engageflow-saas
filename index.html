@@ -166,6 +166,16 @@
 
       <!-- Right Header Actions -->
       <div class="flex items-center gap-3">
+        <!-- Live Cloud HTTPS / Local HTTPS Indicator -->
+        <div id="httpsTunnelBadge" class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-cyan-950/40 border border-cyan-500/30 text-xs text-cyan-200">
+          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+          <span class="font-bold text-[10px] text-cyan-300 uppercase tracking-wider">Cloud HTTPS:</span>
+          <a id="cloudTunnelLink" href="#" target="_blank" class="font-mono text-[11px] text-white hover:underline truncate max-w-[170px]" title="Open Public Cloud HTTPS">Detecting...</a>
+          <button type="button" onclick="copyTunnelUrl()" class="p-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 transition" title="Copy Public HTTPS & Webhook URL">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
         <!-- New Automation Direct Button -->
         <button onclick="openNewRuleModal()" class="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-violet-600/20 transition active:scale-95">
           <i data-lucide="plus-circle" class="w-4 h-4"></i>
@@ -3322,9 +3332,48 @@
       }
     }
 
+    // Tunnel & HTTPS Live Status
+    let currentTunnelStatus = null;
+
+    async function checkTunnelStatus() {
+      try {
+        const res = await apiFetch('/api/tunnel/status');
+        const data = await res.json();
+        if (data.success) {
+          currentTunnelStatus = data;
+          const badge = document.getElementById('httpsTunnelBadge');
+          const link = document.getElementById('cloudTunnelLink');
+          const webhookEl = document.getElementById('displayWebhookUrl');
+
+          if (data.cloudHttps) {
+            if (badge) badge.classList.remove('hidden');
+            if (link) {
+              link.href = data.cloudHttps;
+              link.innerText = data.cloudHttps.replace('https://', '');
+            }
+            if (webhookEl) webhookEl.innerText = data.webhookUrl;
+          } else {
+            if (link) link.innerText = 'Connecting tunnel...';
+            setTimeout(checkTunnelStatus, 3000);
+          }
+        }
+      } catch (e) {
+        console.warn('Tunnel status error:', e);
+      }
+    }
+
+    function copyTunnelUrl() {
+      if (!currentTunnelStatus || !currentTunnelStatus.cloudHttps) {
+        return showToast('Cloud HTTPS tunnel is still starting up, please wait a moment...', 'info');
+      }
+      navigator.clipboard.writeText(currentTunnelStatus.cloudHttps);
+      showToast('Copied Cloud HTTPS URL: ' + currentTunnelStatus.cloudHttps);
+    }
+
     // Startup Initialization
     window.addEventListener('DOMContentLoaded', () => {
       checkAuth();
+      checkTunnelStatus();
     });
   </script>
 </body>

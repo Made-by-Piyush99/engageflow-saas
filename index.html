@@ -1628,12 +1628,24 @@
       }
     }
 
-    function startMetaOauth() {
+    async function startMetaOauth() {
       const token = localStorage.getItem('EngageFlow_token') || '';
-      const clientId = '2401678503569810';
-      const configId = '1114942864880674';
+      try {
+        const cfgRes = await fetch('/api/auth/meta-config');
+        const cfg = await cfgRes.json();
+        if (cfg.success && cfg.clientId && cfg.configId) {
+          const redirectUri = `${window.location.origin}/api/auth/facebook/callback`;
+          const oauthUrl = `https://www.facebook.com/dialog/oauth?client_id=${cfg.clientId}&config_id=${cfg.configId}&display=popup&override_default_response_type=true&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&state=${encodeURIComponent(token)}&auth_type=rerequest&prompt=login`;
+          window.location.href = oauthUrl;
+          return;
+        }
+      } catch (e) {
+        console.warn('Dynamic meta config fetch failed, using fallback:', e);
+      }
+      const clientId = '3050678375263805';
+      const configId = '3733380756838613';
       const redirectUri = `${window.location.origin}/api/auth/facebook/callback`;
-      const oauthUrl = `https://www.facebook.com/dialog/oauth?client_id=${clientId}&config_id=${configId}&display=popup&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&state=${encodeURIComponent(token)}&auth_type=rerequest`;
+      const oauthUrl = `https://www.facebook.com/dialog/oauth?client_id=${clientId}&config_id=${configId}&display=popup&override_default_response_type=true&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&state=${encodeURIComponent(token)}&auth_type=rerequest&prompt=login`;
       window.location.href = oauthUrl;
     }
 

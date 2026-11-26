@@ -12,7 +12,7 @@ import path from 'path';
 import url from 'url';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
-import { spawn } from 'child_process';
+import { spawn, execSync } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -533,15 +533,25 @@ function getUserFromReq(req, db) {
 
 function getRedirectUri(req, currentPath = '/api/auth/facebook/callback') {
   if (process.env.META_REDIRECT_URI) return process.env.META_REDIRECT_URI;
+  const path = currentPath && (currentPath.includes('/api/auth/') || currentPath.includes('/api/webhooks/'))
+    ? currentPath
+    : '/api/auth/facebook/callback';
+
+  // 1. If request came through a live public tunnel or domain, dynamically use it!
+  const host = req ? (req.headers['x-forwarded-host'] || req.headers['host'] || '') : '';
+  if (host && (host.includes('trycloudflare.com') || (host.includes('.') && !host.startsWith('localhost') && !host.startsWith('127.0.0.1')))) {
+    const proto = (req.headers && req.headers['x-forwarded-proto']) || (req.socket?.encrypted ? 'https' : (host.includes('trycloudflare') ? 'https' : 'http'));
+    return `${proto}://${host}${path}`;
+  }
+
+  // 2. Otherwise use detected liveTunnelUrl if available
   if (liveTunnelUrl) {
     const clean = liveTunnelUrl.replace(/\/+$/, '');
-    const path = currentPath && currentPath.includes('/api/auth/') ? currentPath : '/api/auth/facebook/callback';
     return `${clean}${path}`;
   }
-  const host = req.headers['x-forwarded-host'] || req.headers['host'] || 'localhost:5050';
-  const proto = req.headers['x-forwarded-proto'] || (req.socket.encrypted ? 'https' : (host.includes('trycloudflare') ? 'https' : 'http'));
-  const path = currentPath && currentPath.includes('/api/auth/') ? currentPath : '/api/auth/facebook/callback';
-  return `${proto}://${host}${path}`;
+
+  // 3. Fallback
+  return `http://${host || 'localhost:5050'}${path}`;
 }
 
 // =============================================================================
@@ -663,7 +673,8 @@ async function appHandler(req, res) {
   // ---------------------------------------------------------------------------
   if (pathname === '/api/tunnel/status' && method === 'GET') {
     const host = req.headers['x-forwarded-host'] || req.headers['host'] || `localhost:${PORT}`;
-    const activeCloud = liveTunnelUrl || (host.includes('trycloudflare.com') ? `https://${host}` : '');
+    const incomingDomain = host.includes('trycloudflare.com') ? `https://${host}` : '';
+    const activeCloud = incomingDomain || liveTunnelUrl || '';
     sendJson(res, 200, {
       success: true,
       cloudHttps: activeCloud,
@@ -826,9 +837,27 @@ async function appHandler(req, res) {
   }
 
   // ---------------------------------------------------------------------------
+  // 1.45. META OAUTH CONFIGURATION ENDPOINT (/api/auth/meta-config)
+  // ---------------------------------------------------------------------------
+  if (pathname === '/api/auth/meta-config' && method === 'GET') {
+    const db = readDatabase();
+    const clientId = process.env.META_APP_ID || db.instagram?.appId || '3050678375263805';
+    const configId = process.env.META_CONFIG_ID || '3733380756838613';
+    const redirectUri = getRedirectUri(req, '/api/auth/facebook/callback');
+    sendJson(res, 200, {
+      success: true,
+      clientId,
+      configId,
+      redirectUri,
+      loginUrl: `https://www.facebook.com/dialog/oauth?client_id=${clientId}&config_id=${configId}&display=popup&override_default_response_type=true&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code`
+    });
+    return;
+  }
+
+  // ---------------------------------------------------------------------------
   // 1.5. FACEBOOK / INSTAGRAM OAUTH CALLBACK (/api/auth/facebook/callback)
   // ---------------------------------------------------------------------------
-  if ((pathname === '/api/auth/facebook/callback' || pathname === '/api/auth/instagram/callback') && method === 'GET') {
+  if ((pathname === '/api/auth/facebook/callback' || pathname === '/api/auth/instagram/callback' || (pathname === '/api/webhooks/instagram' && parsedUrl.query.code)) && method === 'GET') {
     const code = parsedUrl.query.code;
     const error = parsedUrl.query.error;
     const errorDescription = parsedUrl.query.error_description;
@@ -841,8 +870,8 @@ async function appHandler(req, res) {
     }
 
     const db = readDatabase();
-    const clientId = process.env.META_APP_ID || db.instagram.appId || '2401678503569810';
-    const clientSecret = process.env.META_APP_SECRET || db.instagram.appSecret || '438386a97434a08b45a420c645fd65b1';
+    const clientId = process.env.META_APP_ID || db.instagram?.appId || '3050678375263805';
+    const clientSecret = process.env.META_APP_SECRET || db.instagram?.appSecret || '438386a97434a08b45a420c645fd65b1';
     const redirectUri = getRedirectUri(req, pathname);
 
     console.log('[OAuth] Received authorization code from Meta! Code:', code.slice(0, 15) + '...');
@@ -1120,7 +1149,8 @@ async function appHandler(req, res) {
   if (pathname === '/api/auth/facebook/exchange-token' && method === 'POST') {
     const body = await parseBody(req);
     const { code, appSecret } = body;
-    const clientId = '3050678375263805';
+    const db = readDatabase();
+    const clientId = process.env.META_APP_ID || db.instagram?.appId || '3050678375263805';
     const redirectUri = getRedirectUri(req);
 
     if (!code || !appSecret) {
@@ -2096,11 +2126,29 @@ function startCloudTunnel() {
     return;
   }
 
+  // If cloudflared is already running on the machine, keep the existing tunnel to prevent URL change
+  try {
+    const running = execSync('tasklist /FI "IMAGENAME eq cloudflared.exe" /NH', { encoding: 'utf-8' });
+    if (running && running.toLowerCase().includes('cloudflared.exe')) {
+      console.log('[Cloud Tunnel] Existing cloudflared process detected! Keeping current tunnel active.');
+      const db = readDatabase();
+      if (process.env.TUNNEL_URL) {
+        liveTunnelUrl = process.env.TUNNEL_URL;
+      } else if (db.instagram?.cloudTunnelUrl) {
+        liveTunnelUrl = db.instagram.cloudTunnelUrl;
+      }
+      console.log(`🌐 Stable Active Tunnel: ${liveTunnelUrl || 'Ready on port ' + PORT}`);
+      return;
+    }
+  } catch (e) {}
+
   console.log('[Cloud Tunnel] Launching Cloudflare HTTPS Tunnel for Meta/Instagram testing...');
   try {
     const tunnelProc = spawn(CLOUDFLARED_BIN, ['tunnel', '--url', `http://localhost:${PORT}`], {
-      stdio: ['ignore', 'pipe', 'pipe']
+      stdio: ['ignore', 'pipe', 'pipe'],
+      detached: true
     });
+    tunnelProc.unref();
 
     const parseOutput = (chunk) => {
       const output = chunk.toString();
@@ -2113,7 +2161,7 @@ function startCloudTunnel() {
         console.log(`📡 Webhook Callback: ${liveTunnelUrl}/api/webhooks/instagram`);
         console.log(`=============================================================`);
 
-        // Update database with latest active tunnel URL
+        // Update database and environment with active tunnel URL
         try {
           const db = readDatabase();
           if (db.instagram) {
@@ -2129,10 +2177,6 @@ function startCloudTunnel() {
 
     tunnelProc.on('error', (err) => {
       console.warn('[Cloud Tunnel Warning]:', err.message);
-    });
-
-    process.on('exit', () => {
-      try { tunnelProc.kill(); } catch (e) {}
     });
   } catch (err) {
     console.error('[Cloud Tunnel Exception]:', err.message);

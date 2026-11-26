@@ -871,7 +871,7 @@ async function appHandler(req, res) {
 
     const db = readDatabase();
     const clientId = process.env.META_APP_ID || db.instagram?.appId || '3050678375263805';
-    const clientSecret = process.env.META_APP_SECRET || db.instagram?.appSecret || '438386a97434a08b45a420c645fd65b1';
+    const clientSecret = process.env.META_APP_SECRET || db.credentials?.appSecret || db.instagram?.appSecret || '8a929c5ba404ac20dd4633c5a5553b96';
     const redirectUri = getRedirectUri(req, pathname);
 
     console.log('[OAuth] Received authorization code from Meta! Code:', code.slice(0, 15) + '...');

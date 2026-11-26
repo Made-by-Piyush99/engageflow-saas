@@ -77,18 +77,21 @@ const MIME_TYPES = {
 // Database Helpers
 // =============================================================================
 function readDatabase() {
+  let db = {};
   try {
     if (fs.existsSync(DB_FILE)) {
       const raw = fs.readFileSync(DB_FILE, 'utf-8');
-      return JSON.parse(raw);
+      db = JSON.parse(raw);
     }
   } catch (err) {
     console.error('[DB] Read error:', err.message);
   }
-  return {
-    users: [],
-    sessions: [],
-    instagram: {
+
+  if (!db || typeof db !== 'object') db = {};
+  if (!Array.isArray(db.users)) db.users = [];
+  if (!Array.isArray(db.sessions)) db.sessions = [];
+  if (!db.instagram || typeof db.instagram !== 'object') {
+    db.instagram = {
       connected: false,
       accountId: '',
       username: '',
@@ -97,15 +100,20 @@ function readDatabase() {
       followersCount: 0,
       mediaCount: 0,
       accessToken: '',
-      appId: '',
-      appSecret: '',
-      webhookVerifyToken: 'autopulse_public_webhook_2026'
-    },
-    rules: [],
-    leads: [],
-    activityLogs: [],
-    metrics: { totalDMsSent: 0, hourlyDMsSent: 0, lastResetHour: 0 }
-  };
+      appId: process.env.META_APP_ID || '3050678375263805',
+      appSecret: process.env.META_APP_SECRET || '8a929c5ba404ac20dd4633c5a5553b96',
+      webhookVerifyToken: process.env.WEBHOOK_VERIFY_TOKEN || 'engageflow_webhook_secret_2026',
+      cloudTunnelUrl: process.env.TUNNEL_URL || ''
+    };
+  }
+  if (!Array.isArray(db.rules)) db.rules = [];
+  if (!Array.isArray(db.reels)) db.reels = [];
+  if (!Array.isArray(db.leads)) db.leads = [];
+  if (!Array.isArray(db.activityLogs)) db.activityLogs = [];
+  if (!Array.isArray(db.processedCommentIds)) db.processedCommentIds = [];
+  if (!db.metrics) db.metrics = { totalDMsSent: 0, hourlyDMsSent: 0, lastResetHour: 0 };
+
+  return db;
 }
 
 function writeDatabase(data) {
@@ -906,6 +914,7 @@ async function appHandler(req, res) {
           const { connectedIg, pageToken } = await resolveConnectedInstagram(userToken, clientId, clientSecret);
 
           if (connectedIg) {
+            if (!db.instagram) db.instagram = {};
             db.instagram.connected = true;
             db.instagram.accountId = connectedIg.id;
             db.instagram.username = `@${connectedIg.username}`;
@@ -945,6 +954,8 @@ async function appHandler(req, res) {
 
             // Check state query param to link to the logged-in user
             const stateToken = parsedUrl.query.state;
+            if (!Array.isArray(db.sessions)) db.sessions = [];
+            if (!Array.isArray(db.users)) db.users = [];
             let sessionUser = null;
             if (stateToken) {
               const session = db.sessions.find(s => s.token === stateToken);
@@ -1100,6 +1111,7 @@ async function appHandler(req, res) {
           }
 
           if (connectedIg) {
+            if (!db.instagram) db.instagram = {};
             db.instagram.connected = true;
             db.instagram.accountId = connectedIg.id;
             db.instagram.username = `@${connectedIg.username}`;
